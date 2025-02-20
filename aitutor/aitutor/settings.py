@@ -41,6 +41,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    # 'corsheaders.middleware.CorsMiddleware',    # Remove if it causes issues
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -49,6 +50,10 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:3000",  # Allow React frontend to communicate | Remove if it causes issues
+# ]
 
 ROOT_URLCONF = 'aitutor.urls'
 
