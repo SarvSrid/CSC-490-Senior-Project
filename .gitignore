@@ -5,7 +5,11 @@ node_modules
 # Flask
 __pycache__
 *.pyc
-venv
+/venv
+Include
+Lib
+Scripts
+pyvenv.cfg
 
 # Python
 .env
