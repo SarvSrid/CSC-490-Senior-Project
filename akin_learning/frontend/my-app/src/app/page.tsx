@@ -109,7 +109,7 @@ export default function Home() {
     <div className="flex flex-col items-center justify-center min-h-screen">
       <h1 className="text-2xl font-bold mb-4">Home Page</h1>
       <div className="space-x-4">
-        <Link href="/auth/signin" className="bg-blue-500 text-white px-4 py-2 rounded">
+        <Link href="/auth/signin/signin1" className="bg-blue-500 text-white px-4 py-2 rounded">
           Sign In
         </Link>
         <Link href="/dashboard" className="bg-green-500 text-white px-4 py-2 rounded">
