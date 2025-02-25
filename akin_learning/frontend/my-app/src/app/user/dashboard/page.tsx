@@ -13,7 +13,7 @@ export default function Dashboard() {
     const userData = Cookies.get("user");
     if (!userData) {
       // Redirect to the sign-in page if not logged in
-      router.push("/auth/signin");
+      router.push("/auth/signin/signin1");
     } else {
       // Set the user data
       setUser(JSON.parse(userData));
@@ -31,7 +31,7 @@ export default function Dashboard() {
       <button
         onClick={() => {
           Cookies.remove("user");
-          router.push("/auth/signin");
+          router.push("/auth/signin/signin1");
         }}
         className="mt-4 bg-red-500 text-white px-4 py-2 rounded"
       >
