@@ -106,16 +106,35 @@ import Link from 'next/link';
 
 export default function Home() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen">
-      <h1 className="text-2xl font-bold mb-4">Home Page</h1>
-      <div className="space-x-4">
-        <Link href="/auth/signin/signin1" className="bg-blue-500 text-white px-4 py-2 rounded">
-          Sign In
-        </Link>
-        <Link href="/dashboard" className="bg-green-500 text-white px-4 py-2 rounded">
-          Dashboard
-        </Link>
-      </div>
+    <div className="flex flex-col items-center justify-start min-h-screen bg-gradient-to-r from-blue-500 to-purple-600 text-white pt-16">
+      <header className="flex flex-col items-center mb-12">
+        <img
+          src="/akin-learning-logo.png"
+          alt="Logo"
+          width={350}
+          height={350}
+          className="mb-4"
+        />
+        <h1 className="text-4xl font-extrabold mb-2">Welcome to Akin Learning</h1>
+        <p className="text-lg font-light">Your AI personal tutor to help you in your studies</p>
+      </header>
+      <main className="flex flex-col items-center space-y-6">
+        <div className="space-x-4">
+          <Link href="/auth/signin/signin1" legacyBehavior>
+            <a className="bg-blue-700 hover:bg-blue-800 text-white px-6 py-3 rounded-lg shadow-lg transition-transform transform hover:scale-105">
+              Sign In
+            </a>
+          </Link>
+          <Link href="/dashboard" legacyBehavior>
+            <a className="bg-green-700 hover:bg-green-800 text-white px-6 py-3 rounded-lg shadow-lg transition-transform transform hover:scale-105">
+              Dashboard
+            </a>
+          </Link>
+        </div>
+      </main>
+      <footer className="absolute bottom-4 text-center text-sm">
+        <p>&copy; 2025 Akin Learning. All rights reserved.</p>
+      </footer>
     </div>
   );
 }
