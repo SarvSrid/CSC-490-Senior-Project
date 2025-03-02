@@ -1,0 +1,114 @@
+<!-- filepath: /home/srinman/git/oauth/scenario1/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>OAuth Dashboard</title>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <style>
+    /* Hide Logout and Dashboard buttons until a user is signed in */
+    #logout-btn, #dashboard-btn {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <!-- Display a title on top of the page -->
+  <h1 style="text-align:center;">Welcome to Scenario1 App</h1>
+
+  <!-- Sign-In container (visible when not signed in) -->
+  <div id="google-signin-button" style="margin-top:10px;"></div>
+
+  <!-- These buttons are shown after a successful sign in -->
+  <button id="logout-btn">Logout</button>
+  <button id="dashboard-btn">Dashboard</button>
+  <div id="user-info"></div>
+
+  <script>
+    let isAuthenticated = false;
+    let authToken = null;
+
+    // Initialize Google Identity Services when the window loads.
+    window.onload = function() {
+      google.accounts.id.initialize({
+        client_id: "206020990733-8uem3ibl5mjq7rdh44m0o95vmv8niolt.apps.googleusercontent.com",
+        callback: handleCredentialResponse
+      });
+      // Render the Google Sign-In button.
+      google.accounts.id.renderButton(
+          document.getElementById('google-signin-button'),
+          { theme: "outline", size: "large" }
+      );
+    };
+
+    // Callback function triggered after a successful Google sign-in.
+    function handleCredentialResponse(response) {
+      authToken = response.credential;
+      isAuthenticated = true;
+      
+      // Decode token payload to extract user info.
+      const payload = JSON.parse(atob(authToken.split('.')[1]));
+      const userName = payload.name || payload.email;
+      
+      // Update UI: hide the sign-in button and show Logout and Dashboard buttons.
+      document.getElementById('google-signin-button').style.display = 'none';
+      document.getElementById('logout-btn').style.display = 'inline-block';
+      document.getElementById('dashboard-btn').style.display = 'inline-block';
+      document.getElementById('logout-btn').textContent = 'Logout ' + userName;
+    }
+    window.handleCredentialResponse = handleCredentialResponse;
+
+    // Logout button functionality.
+    document.getElementById('logout-btn').addEventListener('click', function() {
+      // Reset authentication state.
+      isAuthenticated = false;
+      authToken = null;
+      document.getElementById('user-info').innerHTML = '';
+      document.getElementById('logout-btn').style.display = 'none';
+      document.getElementById('dashboard-btn').style.display = 'none';
+      // Re-render the Google Sign-In button.
+      document.getElementById('google-signin-button').style.display = 'block';
+      google.accounts.id.renderButton(
+          document.getElementById('google-signin-button'),
+          { theme: "outline", size: "large" }
+      );
+    });
+
+    // Dashboard button: calls the Python API and displays returned JSON.
+    document.getElementById('dashboard-btn').addEventListener('click', function() {
+      if (!isAuthenticated) {
+        alert('You must be logged in to access the dashboard.');
+        return;
+      }
+      fetch('http://localhost:5000/api/dashboard', {
+        method: 'GET',
+        headers: { 'Authorization': authToken }
+      })
+      .then(response => {
+        if (!response.ok) {
+          // Differentiate the error message based on status code.
+          if (response.status === 401) {
+            throw new Error("User not authenticated. Please log in again.");
+          } else if (response.status === 403) {
+            throw new Error("User authenticated but not registered.");
+          } else {
+            throw new Error("Error fetching dashboard information. (Status: " + response.status + ")");
+          }
+        }
+        return response.json();
+      })
+      .then(data => {
+        displayUserInfo(data);
+      })
+      .catch(error => {
+        alert(error.message);
+      });
+    });
+
+    // Display the JSON payload in a formatted <pre> block.
+    function displayUserInfo(data) {
+      document.getElementById('user-info').innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+    }
+  </script>
+</body>
+</html>

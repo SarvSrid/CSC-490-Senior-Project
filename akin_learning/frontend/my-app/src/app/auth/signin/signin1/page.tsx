@@ -8,6 +8,8 @@ export default function SignInSignUp() {
   const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPopup, setShowPopup] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Set up the sliding overlay behavior after the component mounts
   useEffect(() => {
@@ -31,16 +33,36 @@ export default function SignInSignUp() {
     };
   }, []);
 
-  const handleMockLogin = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleMockLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // Save user data to cookies
-    Cookies.set(
-      "user",
-      JSON.stringify({ name: username, email: `${username}@example.com` }),
-      { expires: 1 }
-    );
-    // Redirect to the dashboard
-    router.push("/user/dashboard");
+    setErrorMessage(null); // Clear any previous error messages
+
+    try {
+      // Simulate a login request (replace with actual API call if needed)
+      if (username === "user" && password === "user123") {
+        // Save user data to cookies
+        Cookies.set(
+          "user",
+          JSON.stringify({ id: "1", name: username, email: `${username}@example.com` }), // Ensure id is set
+          { expires: 1 }
+        );
+
+        // Redirect to the dashboard
+        router.push("/user/dashboard");
+      } else {
+        throw new Error("Invalid username or password");
+      }
+    } catch (error) {
+      setErrorMessage((error as Error).message);
+    }
+  };
+
+  const handleSignUp = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    // Show the popup
+    setShowPopup(true);
+    // Hide the popup after 3 seconds
+    setTimeout(() => setShowPopup(false), 3000);
   };
 
   return (
@@ -50,6 +72,7 @@ export default function SignInSignUp() {
         <form onSubmit={handleMockLogin}>
           <h1>Welcome Back!</h1>
           <p className="p2">Enter your username and password to sign in.</p>
+          {errorMessage && <p className="error-message">{errorMessage}</p>}
           <input
             type="text"
             placeholder="Username"
@@ -70,12 +93,15 @@ export default function SignInSignUp() {
           <button type="submit" className="btn primary-btn">
             Sign In
           </button>
+          {/* <a href="/login/google" className="btn primary-btn">
+            Sign In with Google
+          </a> */}
         </form>
       </div>
 
       {/* Sign Up Form (Right Panel) */}
       <div className="form-container sign-up-container">
-        <form>
+        <form onSubmit={handleSignUp}>
           <h1>Create Your Account</h1>
           <p className="p2">Fill in the details below to get started.</p>
           <div className="form-row">
@@ -121,6 +147,16 @@ export default function SignInSignUp() {
           </div>
         </div>
       </div>
+
+      {/* Popup */}
+      {showPopup && (
+        <div className="popup">
+          <div className="popup-content">
+            <h2>Account Created Successfully!</h2>
+            <p>You have successfully created an account.</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

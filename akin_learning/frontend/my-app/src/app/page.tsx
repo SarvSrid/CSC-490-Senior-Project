@@ -125,11 +125,11 @@ export default function Home() {
               Sign In
             </a>
           </Link>
-          <Link href="/dashboard" legacyBehavior>
-            <a className="bg-green-700 hover:bg-green-800 text-white px-6 py-3 rounded-lg shadow-lg transition-transform transform hover:scale-105">
-              Dashboard
+          <Link href="/auth/signin" legacyBehavior>
+            <a className="bg-white text-blue-700 px-6 py-3 rounded-lg shadow-lg transition-transform transform hover:scale-105">
+              Sign Up
             </a>
-          </Link>
+            </Link>
         </div>
       </main>
       <footer className="absolute bottom-4 text-center text-sm">

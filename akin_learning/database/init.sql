@@ -1,3 +1,10 @@
+CREATE TABLE "user" (
+    "id" BIGINT NOT NULL PRIMARY KEY,
+    "email" VARCHAR(255) NOT NULL UNIQUE,
+    "username" VARCHAR(255) NOT NULL,
+    "date_created" TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL
+);
+
 CREATE TABLE "user_profile" (
     "id" BIGINT NOT NULL PRIMARY KEY,
     "email" VARCHAR(255) NOT NULL UNIQUE,
@@ -5,6 +12,7 @@ CREATE TABLE "user_profile" (
     "password" VARCHAR(255) NOT NULL,
     "date_created" TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL
 );
+
 CREATE INDEX "user_profile_email_index" ON "user_profile"("email");
 
 CREATE TABLE "subject" (
