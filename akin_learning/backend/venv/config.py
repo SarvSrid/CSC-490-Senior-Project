@@ -1,7 +1,7 @@
 import os
 
 class Config:
-    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'postgresql://postgres:sharksnow@127.0.0.1:5432/akin_learning')
+    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'postgresql://myuser:mypassword@localhost:5432/mydatabase')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'your-secret-key')
 
@@ -10,7 +10,7 @@ class Config:
 # If your PostgreSQL connection details are as follows:
 
 # Username: myuser
-# Password: mypassword
+# Password: mypassword 
 # Host: localhost 
 # Port: 5432
 # Database: mydatabase

@@ -2,7 +2,7 @@ import psycopg2
 import os
 
 # Get the database URL from the environment variable or use the default value
-DATABASE_URL = os.getenv('DATABASE_URL', 'postgresql://postgres:sharksnow@127.0.0.1:5432/akin_learning')
+DATABASE_URL = os.getenv('DATABASE_URL', 'postgresql://myuser:mypassword@localhost:5432/mydatabase')
 
 def test_db_connection():
     try:
