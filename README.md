@@ -1,6 +1,6 @@
 # CSC490 Website Template
 
-## Sarvesh Update for project
+## Sarvesh progress update for project (changes made on: 3/1/2025)
 
 ## Backend
 

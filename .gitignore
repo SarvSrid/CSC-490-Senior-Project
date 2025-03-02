@@ -11,6 +11,10 @@ Lib
 Scripts
 pyvenv.cfg
 
+# Ignore specific files in backend/venv
+akin_learning/backend/venv/config.py
+akin_learning/backend/venv/test_db_connection.py
+
 # Python
 .env
 .venv
@@ -22,3 +26,6 @@ env/
 # IDE
 .vscode
 .idea
+
+#if it does not remove normally through .gitignore
+git rm --cached akin_learning/backend/venv/test_db_connection.py
