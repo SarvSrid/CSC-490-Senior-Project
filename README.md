@@ -11,7 +11,7 @@ I created a progress API which will later be changed to `topicAPI` to include bo
 I encountered issues configuring Google authentication to display as a login option. Although I am close to resolving it, I need assistance integrating the script into `page.tsx` or `_documents.js` in the pages directory to work properly.
 
 ### Frontend Updates
-I updated the frontend pages to reference users from the database and should call to show the progress of the user in the user/dashboard now. You will need to configure the `test_db_connection.py` and `config.py` to connect to the database properly. I put some comments in there to help you with that. The localhost will have to br replaced by your localhost IP if it does not work initially with the wording "localhost". Example fo this would be: I needed to use "127.0.0.1:5432" instead of "localhost:5432" in order to connect to the database. 
+I updated the frontend pages to reference users from the database and should call to show the progress of the user in the user/dashboard now. You will need to configure the `test_db_connection.py` and `config.py` in backend\venv (need to add them to your project (backend\venv\`test_db_connection.py` and `config.py`) to connect to the database properly. I put some comments in there to help you with that. The localhost will have to br replaced by your localhost IP if it does not work initially with the wording "localhost". Example fo this would be: I needed to use "127.0.0.1:5432" instead of "localhost:5432" in order to connect to the database. 
 
 ### Files Created
 - **API routes**: `aichat.py`, `auth.py`, `progress.py`, `questions.py`, `topics.py`
