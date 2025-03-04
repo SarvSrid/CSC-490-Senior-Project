@@ -21,7 +21,7 @@ body {
   color: var(--foreground);
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
-  
+
 }
 
 
@@ -40,12 +40,15 @@ body {
 }
 
 /* Custom text styles (using classes instead of custom tags) */
-h1{
+h1 {
   display: block;
-  font-size: 50px;     /* Adjust as needed */
-  font-weight: lighter;   /* or normal, your choice */
+  font-size: 50px;
+  /* Adjust as needed */
+  font-weight: lighter;
+  /* or normal, your choice */
   margin-bottom: 1rem;
-  color: #ffffff;         /* Dark text */
+  color: #ffffff;
+  /* Dark text */
 }
 
 
@@ -57,7 +60,7 @@ h1{
 }
 
 .p1 {
-  
+
   display: block;
   margin-bottom: 400px;
   color: #ffffff;
@@ -73,7 +76,7 @@ h1{
 
 /* CONTAINER & SLIDING PANELS */
 .container {
- 
+
   width: 50%;
 }
 
@@ -109,6 +112,7 @@ h1{
 .container.right-panel-active .sign-in-container {
   transform: translateX(100%);
 }
+
 .container.right-panel-active .sign-up-container {
   transform: translateX(100%);
   opacity: 1;
@@ -137,7 +141,7 @@ h1{
 form h1 {
   font-weight: lighter;
   margin-bottom: 10px;
- 
+
   color: #000000;
 }
 
@@ -169,6 +173,7 @@ input {
   width: 100%;
   margin-bottom: 1rem;
 }
+
 .form-row input {
   flex: 1;
 }
@@ -244,12 +249,10 @@ input {
 
 /* OVERLAY (gradient background) */
 .overlay {
-  background: linear-gradient(
-    to bottom,
-    rgba(0, 170, 255, 1) 0%,
-    rgba(199, 108, 253, 0.95) 89%,
-    rgba(255, 90, 252, 0.89) 100%
-  );
+  background: linear-gradient(to bottom,
+      rgba(0, 170, 255, 1) 0%,
+      rgba(199, 108, 253, 0.95) 89%,
+      rgba(255, 90, 252, 0.89) 100%);
   color: #fff;
   position: relative;
   left: -100%;
@@ -280,6 +283,7 @@ input {
 .overlay-left {
   transform: translateX(-20%);
 }
+
 .container.right-panel-active .overlay-left {
   transform: translateX(0);
 }
@@ -288,6 +292,7 @@ input {
   right: 0;
   transform: translateX(0);
 }
+
 .container.right-panel-active .overlay-right {
   transform: translateX(20%);
 }
@@ -339,11 +344,516 @@ input {
     height: auto;
     flex-direction: column;
   }
+
   .form-container {
     width: 100%;
     height: 50%;
   }
+
   .overlay-container {
     display: none;
   }
+}
+
+
+/* RESET & GLOBAL */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body,
+html {
+  font-family: Arial, sans-serif;
+  height: 100%;
+  background-color: #fff;
+}
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 220px;
+  height: 100%;
+  background: linear-gradient(to bottom,
+      rgba(0, 170, 255, 1) 0%,
+      rgba(199, 108, 253, 0.95) 89%,
+      rgba(255, 90, 252, 0.89) 100%);
+  display: flex;
+  flex-direction: column;
+  color: #fff;
+
+}
+
+d1 {
+  margin-bottom: -40px;
+  display: block;
+  font-size: 45px;
+  /* Adjust as needed */
+
+  color: #ffffff;
+  text-align: center
+}
+
+/* Keep a small padding for the brand at the top */
+.sidebar-header {
+  padding: 1rem 0rem 5rem 0rem;
+}
+
+/* Place the nav menu right below the header */
+.nav-menu {
+  /* By default, it stacks under the header. 
+     We'll push the footer to the bottom by letting 
+     the nav menu expand. */
+  margin-bottom: auto;
+}
+
+.popup-action i {
+  color: #000;
+  /* or any color you prefer */
+  margin-right: 0.75rem;
+  font-size: 1.2rem;
+}
+
+.nav-menu i {
+  margin-right: 0.75rem;
+  font-size: 1.2rem;
+  color: #ffffff;
+  /* Ensure icons are white if your sidebar has a dark gradient */
+}
+
+.nav-menu ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-menu li {
+  display: flex;
+  align-items: center;
+  padding: 0.9rem 2.0rem;
+  /* Slightly reduced vertical spacing */
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.nav-menu li:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.nav-menu li.active {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.nav-icon {
+  margin-right: .75rem;
+  font-size: 1.2rem;
+}
+
+/* Footer pinned to the bottom */
+.sidebar-footer {
+  padding: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
+  margin-right: 0.75rem;
+  font-size: 1.2rem;
+  color: #ffffff;
+}
+
+.logout {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: .75rem 1.5rem;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+}
+
+.logout:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.nav-text {
+  font-size: rem;
+}
+
+/* MAIN CONTENT */
+.main-content {
+  margin-left: 220px;
+  /* Leave space for the sidebar */
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* TOP BAR */
+.top-bar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  background-color: #f0f0f0;
+  padding: 1rem;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+}
+
+.user-avatar {
+  border-radius: 50%;
+  margin-right: 0.5rem;
+}
+
+.username {
+  font-weight: bold;
+  color: #333;
+}
+
+/* DASHBOARD AREA */
+.dashboard {
+  flex: 1;
+  background-color: #fff;
+  overflow-y: auto;
+}
+
+.gradient-text {
+  background: linear-gradient(to bottom,
+      rgba(0, 170, 255, 1) 0%,
+      rgba(199, 108, 253, 0.95) 89%,
+      rgba(255, 90, 252, 0.89) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+  font-weight: bold;
+  margin-right: 0.4rem;
+  /* Space before the arrow */
+}
+
+.dashboard-title {
+  font-size: 2rem;
+  margin-bottom: 2rem;
+  color: #000;
+  /* black text */
+  text-align: center;
+  font-weight: normal;
+  /* match your screenshot's style */
+}
+
+/* GRID OF CARDS */
+.progress-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 2rem;
+  justify-items: center;
+  /* center each card horizontally */
+}
+
+/* INDIVIDUAL CARD */
+.progress-card {
+  background-color: #fff;
+  border: 2px solid #ccc;
+  border-radius: 20px;
+  /* rounded corners like your screenshot */
+  width: 220px;
+  /* consistent card width */
+  height: 250px;
+  /* slightly taller to match shape */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* LABEL UNDER THE CIRCLE */
+.language-label {
+  margin-top: 1rem;
+  font-weight: 400;
+  /* a bit lighter */
+  color: #000;
+  /* black text */
+}
+
+/* CIRCULAR PROGRESS WRAPPER */
+.progress-circle {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin: 0 auto;
+}
+
+/* FILLED ARC & BACKGROUND */
+.circle-fill {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  transition: background 1s ease;
+}
+
+/* CENTERED TEXT */
+.circle-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-weight: normal;
+  font-size: 1.2rem;
+  color: #000;
+}
+
+/* Profile Popup Wrapper */
+.profile-popup {
+  position: absolute;
+  /* so it can float near the button */
+  top: 70px;
+  /* adjust to place it below your top bar */
+  right: 20px;
+  /* adjust to place it near the right side */
+  width: 250px;
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  z-index: 999;
+  /* ensure it appears above other elements */
+  display: none;
+  /* hidden by default */
+}
+
+/* Show the popup when active (JS toggles this class or inline style) */
+.profile-popup.show {
+  display: block;
+}
+
+/* Popup Header */
+.popup-header {
+  display: flex;
+  align-items: center;
+  margin: 4%;
+  justify-content: space-between;
+  padding: 1rem;
+  border-bottom: 1px solid #000000;
+}
+
+/* User Info in the popup header */
+.popup-user-info {
+  display: flex;
+  align-items: center;
+}
+
+.popup-avatar {
+  border-radius: 50%;
+  margin-right: .75rem;
+}
+
+.popup-username {
+  margin: 0;
+  font-size: 1rem;
+  color: #000000;
+}
+
+.popup-userid {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+/* Close Button (X) */
+.popup-close {
+  background: transparent;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+/* Popup Body */
+.popup-body {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Action Buttons in the popup */
+.popup-action {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  background-color: #fff;
+  border: 1px solid #000000;
+  border-radius: 12px;
+  padding: 1rem 0.75rem;
+  margin: 7px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: background-color 0.3s;
+  text-align: left;
+}
+
+.popup-action:hover {
+  background-color: #f0f0f0;
+}
+
+.popup-icon {
+  margin-right: 0.5rem;
+}
+
+/* Make the top bar a bit taller if needed */
+.top-bar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  background-color: #ffffff;
+  padding: 1rem;
+  position: relative;
+  /* Ensure enough space for the pill profile button */
+}
+
+/* Pill-shaped profile button */
+.pill-profile {
+  display: inline-flex;
+  /* Horizontal alignment of avatar + text + icon */
+  align-items: center;
+  background-color: #fff;
+  /* Contrasts with the top bar color */
+  border: 1px solid #ddd;
+  /* Light border for the pill */
+  border-radius: 50px;
+  /* Pill shape */
+  padding: 0.4rem 0.75rem;
+  /* Some horizontal padding */
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+/* On hover, slightly darken background for feedback */
+.pill-profile:hover {
+  background-color: #e6e6e6;
+}
+
+/* Existing user-avatar rules can remain, or override them if needed */
+.user-avatar {
+  border-radius: 50%;
+  width: 35px;
+  /* Adjust size to fit the pill nicely */
+  height: 35px;
+  margin-right: 0.5rem;
+}
+
+/* The username text inside the pill */
+.username {
+  font-weight: bold;
+  color: #333;
+  margin-right: 0.4rem;
+  /* Space before the arrow */
+}
+
+/* The dropdown arrow */
+.dropdown-icon {
+  font-size: 0.8rem;
+  /* Slightly smaller arrow */
+  color: #333;
+  margin-top: 2px;
+  /* Minor vertical tweak if needed */
+}
+
+
+/* Slide-Out Container (on the RIGHT side) */
+.subjects-slideout {
+  position: fixed;
+  top: 0;
+  right: -300px;
+  /* Start hidden offscreen to the right */
+  width: 300px;
+  /* Panel width */
+  height: 100%;
+  background-color: #fff;
+  box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+  transition: right 0.3s ease;
+  z-index: 9999;
+  /* On top of other elements */
+}
+
+/* When "open" class is added, the panel slides to right: 0 (fully visible) */
+.subjects-slideout.open {
+  right: 0;
+}
+
+/* The arrow container - placed in the middle of the left edge of the panel */
+.slideout-arrow {
+  position: absolute;
+  top: 50%;
+  left: -40px;
+  /* Sits outside the panel so it's visible when closed */
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  /* White background for the arrow circle */
+
+
+
+}
+
+/* The arrow symbol itself */
+.arrow-symbol {
+  background: linear-gradient(to bottom,
+      rgba(0, 170, 255, 1) 0%,
+      rgba(199, 108, 253, 0.95) 89%,
+      rgba(255, 90, 252, 0.89) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+
+  font-weight: bold;
+  margin-right: 0.4rem;
+  /* Space before the arrow */
+  font-size: 3rem;
+  color: #000000;
+  line-height: 1;
+  /* Keep arrow centered nicely */
+
+}
+
+/* Slideout Content */
+.slideout-content {
+  padding: 3rem 1rem;
+  height: 100%;
+  overflow-y: auto;
+  /* Scroll if content is tall */
+}
+
+.slideout-title {
+  font-size: 1.5rem;
+  margin-bottom: 2rem;
+  color: #000;
+  font-weight: normal;
+  text-align: center;
+}
+
+/* Subject items with rounded rectangle style */
+.subject-item {
+  width: 100%;
+  padding: 0rem 3rem 4rem 3rem;
+  margin-bottom: 3rem;
+  border: 1px solid #000;
+  border-radius: 30px;
+  /* big round corners */
+  text-align: center;
+  font-size: 1rem;
+  color: #000;
+  transition: background-color 0.2s;
+}
+
+.subject-item:hover {
+  background-color: #f0f0f0;
+}
+
+.p-8{
+  padding: 0rem;
 }
