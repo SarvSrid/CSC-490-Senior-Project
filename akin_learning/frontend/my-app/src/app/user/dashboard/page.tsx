@@ -97,6 +97,7 @@ export default function Dashboard() {
 
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode);
+    document.body.classList.toggle('dark-mode');
   };
 
   return (
