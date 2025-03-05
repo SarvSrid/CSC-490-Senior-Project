@@ -6,8 +6,14 @@ from config import Config
 from utils.db import db
 from models import Progress, Topic
 
+#If you have issues with connecting to the database, you can print the database URI to verify
+# $env:DATABASE_URL="postgresql://myuser:mypassword@localhost:5432/mydatabase"
+
 app = Flask(__name__)
 app.config.from_object(Config)
+
+# Print the database URI to verify
+print("SQLALCHEMY_DATABASE_URI:", app.config['SQLALCHEMY_DATABASE_URI'])
 
 # Initialize extensions
 db.init_app(app)
@@ -41,3 +47,4 @@ with app.app_context():
 if __name__ == '__main__':
     print("Please rename this file from 'progress.py' to 'topicAPI.py' to follow the naming convention.")
     app.run(debug=True)
+    

@@ -34,9 +34,6 @@ export default function Dashboard() {
     }
   }, [router]);
 
-  
-  
-
   // This useEffect is always called
   useEffect(() => {
     const circles = document.querySelectorAll(".progress-circle");
@@ -102,13 +99,10 @@ export default function Dashboard() {
     setIsDarkMode(!isDarkMode);
   };
 
-  
   return (
-    <div
-      className={`p-8 min-h-screen ${isDarkMode ? "bg-gray-900 text-white" : "bg-gray-100 text-black"
-        }`} >
+    <div className={`min-h-screen ${isDarkMode ? "bg-gray-900 text-white" : "bg-gray-100 text-black"}`}>
       {/* Top Bar */}
-      <header className="top-bar">
+      <header className={`top-bar ${isDarkMode ? "bg-gray-800 text-white" : "bg-white text-black"}`}>
         <div className="user-info pill-profile" id="profileButton">
           <img
             src="https://via.placeholder.com/40"
@@ -121,9 +115,9 @@ export default function Dashboard() {
       </header>
 
       {/* Sidebar */}
-      <aside className="sidebar">
+      <aside className={`sidebar ${isDarkMode ? "bg-gray-800 text-white" : "bg-white text-black"}`}>
         <div className="sidebar-header">
-          <d1>Akin Learning</d1>
+          <h1>Akin Learning</h1>
         </div>
         <nav className="nav-menu">
           <ul>
@@ -154,7 +148,7 @@ export default function Dashboard() {
       </aside>
 
       {/* Profile Popup */}
-      <div className="profile-popup" id="profilePopup">
+      <div className={`profile-popup ${isDarkMode ? "bg-gray-800 text-white" : "bg-white text-black"}`} id="profilePopup">
         <div className="popup-header">
           <div className="popup-user-info">
             <img
@@ -186,24 +180,22 @@ export default function Dashboard() {
           </button>
           <button className="popup-action" onClick={toggleTheme}>
             <i className="fa-solid fa-moon"></i>
-            Appearance
+            {isDarkMode ? "Light Mode" : "Dark Mode"}
           </button>
         </div>
       </div>
 
       {/* Main Dashboard Content */}
-      <div className="main-content">
+      <div className={`main-content ${isDarkMode ? "bg-gray-900 text-white" : "bg-gray-100 text-black"}`}>
         <main className="dashboard">
           <h1 className="dashboard-title">Progress</h1>
           <div className="progress-grid">
-            <div
-              className="progress-card"
-            >
+            <div className="progress-card">
               <div
                 className="progress-circle"
                 data-value="50"
                 data-fill="#FFD966"
-                data-bg="#FFF9E6"
+                data-bg={isDarkMode ? "#4B5563" : "#FFF9E6"}
               >
                 <div className="circle-fill"></div>
                 <div className="circle-text">0%</div>
@@ -216,7 +208,7 @@ export default function Dashboard() {
                 className="progress-circle"
                 data-value="25"
                 data-fill="#F9B4B8"
-                data-bg="#FCEAEC"
+                data-bg={isDarkMode ? "#4B5563" : "#FCEAEC"}
               >
                 <div className="circle-fill"></div>
                 <div className="circle-text">0%</div>
@@ -229,7 +221,7 @@ export default function Dashboard() {
                 className="progress-circle"
                 data-value="75"
                 data-fill="#A5D6A7"
-                data-bg="#E8F5E9"
+                data-bg={isDarkMode ? "#4B5563" : "#E8F5E9"}
               >
                 <div className="circle-fill"></div>
                 <div className="circle-text">0%</div>
@@ -242,7 +234,7 @@ export default function Dashboard() {
                 className="progress-circle"
                 data-value="100"
                 data-fill="#AED581"
-                data-bg="#F1F8E9"
+                data-bg={isDarkMode ? "#4B5563" : "#F1F8E9"}
               >
                 <div className="circle-fill"></div>
                 <div className="circle-text">0%</div>
@@ -254,7 +246,7 @@ export default function Dashboard() {
       </div>
 
       {/* Slide-Out Panel for Subjects */}
-      <div className="subjects-slideout" id="subjectsSlideout">
+      <div className={`subjects-slideout ${isDarkMode ? "bg-gray-800 text-white" : "bg-white text-black"}`} id="subjectsSlideout">
         <div className="slideout-gradient"></div>
         <div className="slideout-arrow" id="slideoutArrow">
           <span className="arrow-symbol">&lsaquo;</span>
@@ -267,7 +259,14 @@ export default function Dashboard() {
           <div className="subject-item">Assembly language</div>
         </div>
       </div>
+
+      {/* Theme Toggle Button */}
+      <button
+        onClick={toggleTheme}
+        className="fixed bottom-4 right-4 p-2 bg-blue-500 text-white rounded-full shadow-lg"
+      >
+        {isDarkMode ? "Light Mode" : "Dark Mode"}
+      </button>
     </div>
-  
   );
 }
