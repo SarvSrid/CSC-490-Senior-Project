@@ -10,11 +10,11 @@
   --foreground: #171717;
   --sidebar-bg: linear-gradient(to bottom, rgba(0, 170, 255, 1) 0%, rgba(199, 108, 253, 0.95) 89%, rgba(255, 90, 252, 0.89) 100%);
   --sidebar-color: #ffffff;
-  --top-bar-bg: #f0f0f0;
+  --top-bar-bg: #ffffff;
   --top-bar-color: #333;
   --progress-card-bg: #ffffff;
   --progress-card-border: #ccc;
-  --progress-circle-bg: #e0e0e0;
+  --progress-circle-bg: #ffffff;
   --popup-bg: #ffffff;
   --popup-color: #000000;
   --subject-item-bg: #ffffff;
@@ -77,6 +77,7 @@ h1 {
   /* or normal, your choice */
   margin-bottom: 1rem;
   color: #ffffff;
+  text-align: center;
   /* Dark text */
 }
 
@@ -409,6 +410,7 @@ html {
   color: var(--sidebar-color);
   display: flex;
   flex-direction: column;
+  border-radius: 0px 20px 20px 0px
 }
 
 d1 {
@@ -423,7 +425,7 @@ d1 {
 
 /* Keep a small padding for the brand at the top */
 .sidebar-header {
-  padding: 1rem 0rem 5rem 0rem;
+  padding: 0rem 0rem 0rem 0rem;
 }
 
 /* Place the nav menu right below the header */
@@ -538,7 +540,7 @@ d1 {
 /* DASHBOARD AREA */
 .dashboard {
   flex: 1;
-  background-color: #fff;
+  background-color: var(--subject-item-bg);
   overflow-y: auto;
 }
 
@@ -558,11 +560,12 @@ d1 {
 
 .dashboard-title {
   font-size: 2rem;
-  margin-bottom: 2rem;
-  color: #000;
-  /* black text */
-  text-align: center;
-  font-weight: normal;
+    margin-bottom: 2rem;
+    color: var(--popup-color);
+    text-align: center;
+    font-weight: normal;
+    border-bottom: 1px solid var(--popup-color);
+    margin: 0% 4% 3% 4%;
   /* match your screenshot's style */
 }
 
@@ -579,7 +582,7 @@ d1 {
 .progress-card {
   background-color: var(--top-bar-bg);
   color: var(--top-bar-color);
-  border: 2px solid #ccc;
+  border: 1px solid var(--popup-color);
   border-radius: 20px;
   /* rounded corners like your screenshot */
   width: 220px;
@@ -591,19 +594,22 @@ d1 {
   align-items: center;
   justify-content: center;
 }
+.progress-card:hover {
+  background-color: var(--subject-item-hover-bg);
+}
 
 /* LABEL UNDER THE CIRCLE */
 .language-label {
   margin-top: 1rem;
   font-weight: 400;
   /* a bit lighter */
-  color: #000;
+  color: var(--popup-color);
   /* black text */
 }
 
 /* CIRCULAR PROGRESS WRAPPER */
 .progress-circle {
-  background-color: var(--progress-circle-bg);
+  background-color: transparent;
   position: relative;
   width: 120px;
   height: 120px;
@@ -642,7 +648,7 @@ d1 {
   background-color: var(--popup-bg);
   color: var(--popup-color);
   border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 8px #c76cfd;
   overflow: hidden;
   z-index: 999;
   /* ensure it appears above other elements */
@@ -685,7 +691,7 @@ d1 {
 .popup-userid {
   margin: 0;
   font-size: 0.85rem;
-  color: #666;
+  color: var(--popup-color);
 }
 
 /* Close Button (X) */
@@ -734,7 +740,8 @@ d1 {
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  background-color: var(--top-bar-bg);
+  background-color:  var(--subject-item-bg);
+
   padding: 1rem;
   position: relative;
 }
@@ -747,7 +754,7 @@ d1 {
   align-items: center;
   background-color: var(--popup-bg);
   /* Contrasts with the top bar color */
-  border: 1px solid #ddd;
+  border: 1px solid var(--popup-color);
   /* Light border for the pill */
   border-radius: 50px;
   /* Pill shape */
@@ -783,7 +790,7 @@ d1 {
 .dropdown-icon {
   font-size: 0.8rem;
   /* Slightly smaller arrow */
-  color: #333;
+  color: var(--popup-color);
   margin-top: 2px;
   /* Minor vertical tweak if needed */
 }
@@ -824,7 +831,7 @@ d1 {
   align-items: center;
   justify-content: center;
   /* background-color: transparent; */
-  background-color: var(--subject-item-bg);
+  background-color: transparent;
   /* White background for the arrow circle */
 }
 
@@ -853,6 +860,7 @@ d1 {
   padding: 3rem 1rem;
   height: 100%;
   overflow-y: auto;
+  box-shadow: 0 2px 8px #c76cfd;
   /* Scroll if content is tall */
 }
 
@@ -869,7 +877,7 @@ d1 {
   width: 100%;
   padding: 0rem 3rem 4rem 3rem;
   margin-bottom: 3rem;
-  border: 1px solid #000;
+  border: 1px solid var(--popup-color);
   border-radius: 30px;
   /* big round corners */
   text-align: center;
