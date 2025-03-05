@@ -69,7 +69,7 @@ const QuestionsPage: React.FC = () => {
       <aside className="w-1/5 min-h-screen bg-gradient-to-b from-blue-500 to-purple-500 text-white p-5">
         <h2 className="text-xl font-bold mb-8">Akin Learning</h2>
         <nav className="space-y-4">
-          <Link href="/dashboard">
+          <Link href="/user/dashboard">
             <button className="block text-left">🏠 Home</button>
           </Link>
           <Link href="/user/topics">
@@ -78,7 +78,9 @@ const QuestionsPage: React.FC = () => {
           <button className="block text-left">🤖 AI Tutor</button>
           <button className="block text-left">⚙️ Settings</button>
         </nav>
+        <Link href="/auth/signin/signin1">
         <button className="absolute bottom-5 left-5">🚪 Log Out</button>
+        </Link>
       </aside>
 
       {/* Main Content */}

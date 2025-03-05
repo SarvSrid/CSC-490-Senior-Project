@@ -24,3 +24,6 @@ I updated the frontend pages to reference users from the database and should cal
 - **Pages**: Changed the pages a bit to contain a few buttons and made a pages directory to hopefully get the Google authentication working, but failed in the end
 - **Frontend Example**: The `frontend_ex` folder is a reference of how the Google authentication is supposed to work. It works using regular HTML, but when I convert it to `page.tsx` it fails to work.
 - **Requirements**: Made a `requirements.txt` page to see the recent pip installations I made for the backend.
+
+## Important change: (3/5/25)
+In user dashboard, you will see that there is a test.html there, thats where I kept the previous code that you made before. It didnt contain any call to the backend and I jsut implemnted it into the user/dashboard/page.tsx. Currently the progress circles contain the same color but other than that, everything else is the same. 

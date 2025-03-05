@@ -35,6 +35,7 @@ export default function Dashboard() {
     }
   }, [router]);
 
+  // This useEffect is always called
   useEffect(() => {
     const circles = document.querySelectorAll(".progress-circle");
     circles.forEach((circle) => {
@@ -93,7 +94,7 @@ export default function Dashboard() {
         arrowSymbol.innerHTML = "&lsaquo;"; // arrow pointing left
       }
     });
-  }, [progress]);
+  }, []);
 
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode);
@@ -150,10 +151,8 @@ export default function Dashboard() {
         </nav>
         <div className="sidebar-footer">
           <div className="logout">
-          <Link href="/auth/signin/signin1">
             <i className="fa-solid fa-right-from-bracket"></i>
             <span className="nav-text">Log Out</span>
-          </Link>
           </div>
         </div>
       </aside>
@@ -201,22 +200,65 @@ export default function Dashboard() {
         <main className="dashboard">
           <h1 className="dashboard-title">Progress</h1>
           <div className="progress-grid">
-            {progress.map((item, index) => (
-              <Link href="/user/topics" key={index}>
-                <div className="progress-card">
-                  <div
-                    className="progress-circle"
-                    data-value={item.percentage.toString()}
-                    data-fill="#FFD966"
-                    data-bg={isDarkMode ? "#4B5563" : "#FFF9E6"}
-                  >
-                    <div className="circle-fill"></div>
-                    <div className="circle-text">{item.percentage}%</div>
-                  </div>
-                  <span className="language-label">{item.topic}</span>
+            <Link href="/user/topics">
+              <div className="progress-card">
+                <div
+                  className="progress-circle"
+                  data-value="50"
+                  data-fill="#FFD966"
+                  data-bg={isDarkMode ? "#4B5563" : "#FFF9E6"}
+                >
+                  <div className="circle-fill"></div>
+                  <div className="circle-text">0%</div>
                 </div>
-              </Link>
-            ))}
+                <span className="language-label">Python</span>
+              </div>
+            </Link>
+
+            <Link href="/user/topics">
+              <div className="progress-card">
+                <div
+                  className="progress-circle"
+                  data-value="25"
+                  data-fill="#F9B4B8"
+                  data-bg={isDarkMode ? "#4B5563" : "#FCEAEC"}
+                >
+                  <div className="circle-fill"></div>
+                  <div className="circle-text">0%</div>
+                </div>
+                <span className="language-label">C++</span>
+              </div>
+            </Link>
+
+            <Link href="/user/topics">
+              <div className="progress-card">
+                <div
+                  className="progress-circle"
+                  data-value="75"
+                  data-fill="#A5D6A7"
+                  data-bg={isDarkMode ? "#4B5563" : "#E8F5E9"}
+                >
+                  <div className="circle-fill"></div>
+                  <div className="circle-text">0%</div>
+                </div>
+                <span className="language-label">Java</span>
+              </div>
+            </Link>
+
+            <Link href="/user/topics">
+              <div className="progress-card">
+                <div
+                  className="progress-circle"
+                  data-value="100"
+                  data-fill="#AED581"
+                  data-bg={isDarkMode ? "#4B5563" : "#F1F8E9"}
+                >
+                  <div className="circle-fill"></div>
+                  <div className="circle-text">0%</div>
+                </div>
+                <span className="language-label">Assembly language</span>
+              </div>
+            </Link>
           </div>
         </main>
       </div>
