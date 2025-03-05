@@ -35,7 +35,7 @@ export default function Dashboard() {
     }
   }, [router]);
 
-  // This useEffect is always called
+  // DOM manipulation for progress circles, profile popup, and slide-out panel
   useEffect(() => {
     const circles = document.querySelectorAll(".progress-circle");
     circles.forEach((circle) => {
@@ -46,12 +46,7 @@ export default function Dashboard() {
       const text = circle.querySelector(".circle-text") as HTMLElement;
       const angle = (value / 100) * 360;
       if (fill) {
-        fill.style.background = `conic-gradient(
-          ${fillColor} 0deg,
-          ${fillColor} ${angle}deg,
-          ${bgColor} ${angle}deg,
-          ${bgColor} 360deg
-        )`;
+        fill.style.background = `conic-gradient(${fillColor} 0deg, ${fillColor} ${angle}deg, ${bgColor} ${angle}deg, ${bgColor} 360deg)`;
       }
       if (text) {
         text.textContent = `${value}%`;
@@ -98,19 +93,15 @@ export default function Dashboard() {
 
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode);
-    document.body.classList.toggle('dark-mode');
+    document.body.classList.toggle("dark-mode");
   };
 
   return (
-    <div className={`min-h-screen ${isDarkMode ? "bg-gray-900 text-white" : "bg-gray-100 text-black"}`}>
+    <div className={`p-8 min-h-screen ${isDarkMode ? "bg-gray-900 text-white" : "bg-gray-100 text-black"}`}>
       {/* Top Bar */}
       <header className={`top-bar ${isDarkMode ? "bg-gray-800 text-white" : "bg-white text-black"}`}>
         <div className="user-info pill-profile" id="profileButton">
-          <img
-            src="https://via.placeholder.com/40"
-            alt="User Avatar"
-            className="user-avatar"
-          />
+          <img src="https://via.placeholder.com/40" alt="User Avatar" className="user-avatar" />
           <span className="gradient-text">User123</span>
           <span className="dropdown-icon">▼</span>
         </div>
@@ -124,28 +115,28 @@ export default function Dashboard() {
         <nav className="nav-menu">
           <ul>
             <li className="active">
-            <Link href="/dashboard">
-              <i className="fa-solid fa-book"></i>
-              <span className="nav-text">Home</span>
-            </Link>
+              <Link href="/dashboard">
+                <i className="fa-solid fa-house"></i>
+                <span className="nav-text">Home</span>
+              </Link>
             </li>
             <li>
-            <Link href="/user/topics">
-              <i className="fa-solid fa-book"></i>
-              <span className="nav-text">Subjects</span>
-            </Link>
+              <Link href="/user/topics">
+                <i className="fa-solid fa-book"></i>
+                <span className="nav-text">Subjects</span>
+              </Link>
             </li>
             <li>
-            <Link href="/ai-tutor">
-              <i className="fa-solid fa-robot"></i>
-              <span className="nav-text">AI Tutor</span>
-            </Link>
+              <Link href="/ai-tutor">
+                <i className="fa-solid fa-robot"></i>
+                <span className="nav-text">AI Tutor</span>
+              </Link>
             </li>
             <li>
-            <Link href="/settings">
-              <i className="fa-solid fa-gear"></i>
-              <span className="nav-text">Settings</span>
-            </Link>
+              <Link href="/settings">
+                <i className="fa-solid fa-gear"></i>
+                <span className="nav-text">Settings</span>
+              </Link>
             </li>
           </ul>
         </nav>
@@ -161,11 +152,7 @@ export default function Dashboard() {
       <div className={`profile-popup ${isDarkMode ? "bg-gray-800 text-white" : "bg-white text-black"}`} id="profilePopup">
         <div className="popup-header">
           <div className="popup-user-info">
-            <img
-              src="https://via.placeholder.com/60"
-              alt="Avatar"
-              className="popup-avatar"
-            />
+            <img src="https://via.placeholder.com/60" alt="Avatar" className="popup-avatar" />
             <div>
               <h3 className="gradient-text">User123</h3>
               <p className="popup-userid">ID: 1234567</p>
@@ -278,13 +265,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Theme Toggle Button */}
-      <button
-        onClick={toggleTheme}
-        className="fixed bottom-4 right-4 p-2 bg-blue-500 text-white rounded-full shadow-lg"
-      >
-        {isDarkMode ? "Light Mode" : "Dark Mode"}
-      </button>
+      
     </div>
   );
 }
