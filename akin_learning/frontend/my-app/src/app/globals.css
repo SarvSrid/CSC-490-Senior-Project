@@ -1,0 +1,889 @@
+@import url('https://fonts.googleapis.com/css?family=Montserrat:400,800');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Define CSS variables for light mode */
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  --sidebar-bg: linear-gradient(to bottom, rgba(0, 170, 255, 1) 0%, rgba(199, 108, 253, 0.95) 89%, rgba(255, 90, 252, 0.89) 100%);
+  --sidebar-color: #ffffff;
+  --top-bar-bg: #ffffff;
+  --top-bar-color: #333;
+  --progress-card-bg: #ffffff;
+  --progress-card-border: #ccc;
+  --progress-circle-bg: #ffffff;
+  --popup-bg: #ffffff;
+  --popup-color: #000000;
+  --subject-item-bg: #ffffff;
+  --subject-item-color: #000000;
+  --subject-item-hover-bg: #f0f0f0;
+}
+
+/* Define CSS variables for dark mode */
+.dark-mode {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --sidebar-bg: linear-gradient(to bottom, rgba(0, 170, 255, 1) 0%, rgba(199, 108, 253, 0.95) 89%, rgba(255, 90, 252, 0.89) 100%);
+  --sidebar-color: #ffffff;
+  --top-bar-bg: #333333;
+  --top-bar-color: #ffffff;
+  --progress-card-bg: #333333;
+  --progress-card-border: #555555;
+  --progress-circle-bg: #4b5563;
+  --popup-bg: #333333;
+  --popup-color: #ffffff;
+  --subject-item-bg: #333333;
+  --subject-item-color: #ffffff;
+  --subject-item-hover-bg: #555555;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+/* Base body styles */
+/* body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: Arial, Helvetica, sans-serif;
+
+} */
+
+/* RESET & GLOBAL */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background: #ffffff;
+  font-family: Arial, Helvetica, sans-serif;
+  margin: 0 0 0 0;
+  height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Custom text styles (using classes instead of custom tags) */
+h1 {
+  display: block;
+  font-size: 50px;
+  /* Adjust as needed */
+  font-weight: lighter;
+  /* or normal, your choice */
+  margin-bottom: 1rem;
+  color: #ffffff;
+  /* Dark text */
+}
+
+
+.p2 {
+  font-size: 1rem;
+  color: #000000;
+  margin-bottom: 4rem;
+  text-align: left;
+}
+
+.p1 {
+
+  display: block;
+  margin-bottom: 400px;
+  color: #ffffff;
+  line-height: 1.5;
+}
+
+.p11 {
+  display: block;
+  margin-bottom: 100px;
+  color: #ffffff;
+  line-height: 1.5;
+}
+
+/* CONTAINER & SLIDING PANELS */
+.container {
+
+  width: 50%;
+}
+
+/* Each form container (Sign In / Sign Up) */
+.form-container {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 50%;
+  padding: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  transition: all 0.6s ease-in-out;
+}
+
+/* Sign In panel on the left */
+.sign-in-container {
+  left: 0;
+  z-index: 2;
+  background-color: #fff;
+}
+
+/* Sign Up panel on the right (initially hidden) */
+.sign-up-container {
+  left: 0;
+  opacity: 0;
+  z-index: 1;
+}
+
+/* Slide animation triggers when .right-panel-active is added */
+/* .container.right-panel-active .sign-in-container {
+  transform: translateX(100%);
+} */
+
+.container.right-panel-active .sign-up-container {
+  transform: translateX(100%);
+  opacity: 1;
+  z-index: 5;
+}
+
+/* FORM STYLING */
+.sign-in-container form,
+.sign-up-container form {
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  padding: 0 1%;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Rounded corners on the Sign Up form’s right side */
+.sign-up-container form {
+  border-top-right-radius: 80px;
+  border-bottom-right-radius: 80px;
+  padding: 0 80px;
+}
+
+/* Headings inside forms */
+form h1 {
+  font-weight: lighter;
+  margin-bottom: 10px;
+
+  color: #000000;
+}
+
+/* Extra paragraphs inside forms */
+form .p2 {
+  font-size: 1rem;
+  color: #000000;
+  margin-bottom: 4rem;
+  text-align: left;
+}
+
+/* INPUT FIELDS */
+input {
+  background-color: transparent;
+  border: 2px solid #757575;
+  border-radius: 50px;
+  padding: 20px;
+  text-align: left;
+  margin: 20px 0 0 0;
+  width: 100%;
+  font-size: 1rem;
+  color: #757575;
+}
+
+/* Two-column layout for Sign Up form rows */
+.form-row {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.form-row input {
+  flex: 1;
+}
+
+/* FORGOT PASSWORD LINK */
+.forgot-password {
+  display: block;
+  text-align: left;
+  color: #000000;
+  text-decoration: none;
+  padding: 10px 200px 0px 0px;
+  margin-top: 15px;
+  margin-right: 75px;
+  font-size: 0.9rem;
+}
+
+/* BUTTONS */
+.btn {
+  border-radius: 50px;
+  font-size: 14px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 80ms ease-in;
+  margin-top: 50px;
+  width: 100%;
+}
+
+.btn:active {
+  transform: scale(0.95);
+}
+
+.btn:focus {
+  outline: none;
+}
+
+/* Primary (filled) button */
+.btn.primary-btn {
+  border: none;
+  background-color: #757575;
+  color: #ffffff;
+  padding: 20px 100px;
+  margin: 50px 0px 0px 0px;
+}
+
+/* Ghost (outlined) button */
+.btn.ghost-btn {
+  background-color: transparent;
+  border: 2px solid #fff;
+  color: #fff;
+  padding: 10px;
+  width: 8rem;
+}
+
+/* OVERLAY CONTAINER & ANIMATION */
+.overlay-container {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 50%;
+  height: 100%;
+  overflow: hidden;
+  transition: transform 0.6s ease-in-out, border-radius 0.6s ease-in-out;
+  z-index: 100;
+  border-radius: 100px 0 0 100px;
+}
+
+.container.right-panel-active .overlay-container {
+  transform: translateX(-100%);
+  border-radius: 0 100px 100px 0;
+}
+
+/* OVERLAY (gradient background) */
+.overlay {
+  background: linear-gradient(to bottom,
+      rgba(0, 170, 255, 1) 0%,
+      rgba(199, 108, 253, 0.95) 89%,
+      rgba(255, 90, 252, 0.89) 100%);
+  color: #fff;
+  position: relative;
+  left: -100%;
+  height: 100%;
+  width: 200%;
+  transform: translateX(0);
+  transition: transform 0.6s ease-in-out;
+}
+
+.container.right-panel-active .overlay {
+  transform: translateX(50%);
+}
+
+/* Overlay Panels */
+.overlay-panel {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0 40px;
+  height: 100%;
+  width: 50%;
+  transition: transform 0.6s ease-in-out;
+}
+
+.overlay-left {
+  transform: translateX(-20%);
+}
+
+.container.right-panel-active .overlay-left {
+  transform: translateX(0);
+}
+
+.overlay-right {
+  right: 0;
+  transform: translateX(0);
+}
+
+.container.right-panel-active .overlay-right {
+  transform: translateX(20%);
+}
+
+/* Back button */
+.back-button {
+  position: absolute;
+  top: 1.5rem;
+  left: -1rem;
+  background: transparent;
+  color: #000000;
+  border: 2px solid #757575;
+  text-decoration: none;
+  font-size: 0.8rem;
+  padding: 0.2rem 2rem;
+  border-radius: 0px 50px 50px 0;
+  z-index: 10;
+}
+
+.back-button:hover {
+  background: #757575;
+  color: #000000;
+}
+
+.popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+}
+
+.popup-content {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+/* RESPONSIVE ADJUSTMENTS */
+@media (max-width: 768px) {
+  .container {
+    width: 100%;
+    height: auto;
+    flex-direction: column;
+  }
+
+  .form-container {
+    width: 100%;
+    height: 50%;
+  }
+
+  .overlay-container {
+    display: none;
+  }
+}
+
+
+/* RESET & GLOBAL */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body,
+html {
+  font-family: Arial, sans-serif;
+  height: 100%;
+  background-color: #fff;
+}
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 220px;
+  height: 100%;
+  background: var(--sidebar-bg);
+  color: var(--sidebar-color);
+  display: flex;
+  flex-direction: column;
+}
+
+d1 {
+  margin-bottom: -40px;
+  display: block;
+  font-size: 45px;
+  /* Adjust as needed */
+
+  color: #ffffff;
+  text-align: center
+}
+
+/* Keep a small padding for the brand at the top */
+.sidebar-header {
+  padding: 1rem 0rem 5rem 0rem;
+}
+
+/* Place the nav menu right below the header */
+.nav-menu {
+  /* By default, it stacks under the header. 
+     We'll push the footer to the bottom by letting 
+     the nav menu expand. */
+  margin-bottom: auto;
+}
+
+.popup-action i {
+  color: #000;
+  /* or any color you prefer */
+  margin-right: 0.75rem;
+  font-size: 1.2rem;
+}
+
+.nav-menu i {
+  margin-right: 0.75rem;
+  font-size: 1.2rem;
+  color: var(--sidebar-color);
+  /* Ensure icons are white if your sidebar has a dark gradient */
+}
+
+.nav-menu ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-menu li {
+  display: flex;
+  align-items: center;
+  padding: 0.9rem 2.0rem;
+  /* Slightly reduced vertical spacing */
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.nav-menu li:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.nav-menu li.active {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.nav-icon {
+  margin-right: .75rem;
+  font-size: 1.2rem;
+}
+
+/* Footer pinned to the bottom */
+.sidebar-footer {
+  padding: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
+  margin-right: 0.75rem;
+  font-size: 1.2rem;
+  color: var(--sidebar-color);
+}
+
+.logout {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: .75rem 1.5rem;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+}
+
+.logout:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.nav-text {
+  font-size: rem;
+}
+
+/* MAIN CONTENT */
+.main-content {
+  margin-left: 220px;
+  /* Leave space for the sidebar */
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* TOP BAR */
+/* .top-bar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  background-color: #f0f0f0;
+  padding: 1rem;
+} */
+
+.user-info {
+  display: flex;
+  align-items: center;
+}
+
+.user-avatar {
+  border-radius: 50%;
+  margin-right: 0.5rem;
+}
+
+.username {
+  font-weight: bold;
+  color: #333;
+}
+
+/* DASHBOARD AREA */
+.dashboard {
+  flex: 1;
+  background-color: var(--subject-item-bg);
+  overflow-y: auto;
+}
+
+.gradient-text {
+  background: linear-gradient(to bottom,
+      rgba(0, 170, 255, 1) 0%,
+      rgba(199, 108, 253, 0.95) 89%,
+      rgba(255, 90, 252, 0.89) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+  font-weight: bold;
+  margin-right: 0.4rem;
+  /* Space before the arrow */
+}
+
+.dashboard-title {
+  font-size: 2rem;
+  margin-bottom: 2rem;
+  color: var(--popup-color);
+  /* black text */
+  text-align: center;
+  font-weight: normal;
+  /* match your screenshot's style */
+}
+
+/* GRID OF CARDS */
+.progress-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 2rem;
+  justify-items: center;
+  /* center each card horizontally */
+}
+
+/* INDIVIDUAL CARD */
+.progress-card {
+  background-color: var(--top-bar-bg);
+  color: var(--top-bar-color);
+  border: 2px solid var(--popup-color);
+  border-radius: 20px;
+  /* rounded corners like your screenshot */
+  width: 220px;
+  /* consistent card width */
+  height: 250px;
+  /* slightly taller to match shape */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* LABEL UNDER THE CIRCLE */
+.language-label {
+  margin-top: 1rem;
+  font-weight: 400;
+  /* a bit lighter */
+  color: var(--popup-color);
+  /* black text */
+}
+
+/* CIRCULAR PROGRESS WRAPPER */
+.progress-circle {
+  background-color: var(--subject-item-bg);
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin: 0 auto;
+}
+
+/* FILLED ARC & BACKGROUND */
+.circle-fill {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  transition: background 1s ease;
+  background-color: var(--progress-circle-bg);
+}
+
+/* CENTERED TEXT */
+.circle-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-weight: normal;
+  font-size: 1.2rem;
+  color: #000;
+}
+
+/* Profile Popup Wrapper */
+.profile-popup {
+  position: absolute;
+  /* so it can float near the button */
+  top: 70px;
+  /* adjust to place it below your top bar */
+  right: 20px;
+  /* adjust to place it near the right side */
+  width: 250px;
+  background-color: var(--popup-bg);
+  color: var(--popup-color);
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  z-index: 999;
+  /* ensure it appears above other elements */
+  display: none;
+  /* hidden by default */
+}
+
+/* Show the popup when active (JS toggles this class or inline style) */
+.profile-popup.show {
+  display: block;
+}
+
+/* Popup Header */
+.popup-header {
+  display: flex;
+  align-items: center;
+  margin: 4%;
+  justify-content: space-between;
+  padding: 1rem;
+  border-bottom: 1px solid var(--popup-color);
+}
+
+/* User Info in the popup header */
+.popup-user-info {
+  display: flex;
+  align-items: center;
+}
+
+.popup-avatar {
+  border-radius: 50%;
+  margin-right: .75rem;
+}
+
+.popup-username {
+  margin: 0;
+  font-size: 1rem;
+  color: #000000;
+}
+
+.popup-userid {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+/* Close Button (X) */
+.popup-close {
+  background: transparent;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+/* Popup Body */
+.popup-body {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Action Buttons in the popup */
+.popup-action {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  background-color: var(--popup-bg);
+  border: 1px solid var(--popup-color);
+  border-radius: 12px;
+  padding: 1rem 0.75rem;
+  margin: 7px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: background-color 0.3s;
+  text-align: left;
+}
+
+.popup-action:hover {
+  background-color: var(--subject-item-hover-bg);
+}
+
+.popup-icon {
+  margin-right: 0.5rem;
+}
+
+/* TOP BAR */
+/* Make the top bar a bit taller if needed */
+.top-bar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  background-color:  var(--subject-item-bg);
+
+  padding: 1rem;
+  position: relative;
+}
+  /* Ensure enough space for the pill profile button */
+
+/* Pill-shaped profile button */
+.pill-profile {
+  display: inline-flex;
+  /* Horizontal alignment of avatar + text + icon */
+  align-items: center;
+  background-color: var(--popup-bg);
+  /* Contrasts with the top bar color */
+  border: 1px solid var(--popup-color);
+  /* Light border for the pill */
+  border-radius: 50px;
+  /* Pill shape */
+  padding: 0.4rem 0.75rem;
+  /* Some horizontal padding */
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+/* On hover, slightly darken background for feedback */
+.pill-profile:hover {
+  background-color: var(--subject-item-hover-bg);
+}
+
+/* Existing user-avatar rules can remain, or override them if needed */
+.user-avatar {
+  border-radius: 50%;
+  width: 35px;
+  /* Adjust size to fit the pill nicely */
+  height: 35px;
+  margin-right: 0.5rem;
+}
+
+/* The username text inside the pill */
+.username {
+  font-weight: bold;
+  color: #333;
+  margin-right: 0.4rem;
+  /* Space before the arrow */
+}
+
+/* The dropdown arrow */
+.dropdown-icon {
+  font-size: 0.8rem;
+  /* Slightly smaller arrow */
+  color: var(--popup-color);
+  margin-top: 2px;
+  /* Minor vertical tweak if needed */
+}
+
+
+/* Slide-Out Container (on the RIGHT side) */
+.subjects-slideout {
+  position: fixed;
+  top: 0;
+  right: -300px;
+  /* Start hidden offscreen to the right */
+  width: 300px;
+  /* Panel width */
+  height: 100%;
+  background-color: var(--subject-item-bg);
+  box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+  transition: right 0.3s ease;
+  z-index: 9999;
+  /* On top of other elements */
+}
+
+/* When "open" class is added, the panel slides to right: 0 (fully visible) */
+.subjects-slideout.open {
+  right: 0;
+}
+
+/* The arrow container - placed in the middle of the left edge of the panel */
+.slideout-arrow {
+  position: absolute;
+  top: 50%;
+  left: -40px;
+  /* Sits outside the panel so it's visible when closed */
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* background-color: transparent; */
+  background-color: transparent;
+  /* White background for the arrow circle */
+}
+
+/* The arrow symbol itself */
+.arrow-symbol {
+  background: linear-gradient(to bottom,
+      rgba(0, 170, 255, 1) 0%,
+      rgba(199, 108, 253, 0.95) 89%,
+      rgba(255, 90, 252, 0.89) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+
+  font-weight: bold;
+  margin-right: 0.4rem;
+  /* Space before the arrow */
+  font-size: 3rem;
+  color: var(--subject-item-color);
+  line-height: 1;
+  /* Keep arrow centered nicely */
+
+}
+
+/* Slideout Content */
+.slideout-content {
+  padding: 3rem 1rem;
+  height: 100%;
+  overflow-y: auto;
+  /* Scroll if content is tall */
+}
+
+.slideout-title {
+  font-size: 1.5rem;
+  margin-bottom: 2rem;
+  color: var(--subject-item-color);
+  font-weight: normal;
+  text-align: center;
+}
+
+/* Subject items with rounded rectangle style */
+.subject-item {
+  width: 100%;
+  padding: 0rem 3rem 4rem 3rem;
+  margin-bottom: 3rem;
+  border: 1px solid #000;
+  border-radius: 30px;
+  /* big round corners */
+  text-align: center;
+  font-size: 1rem;
+  color: var(--subject-item-color);
+  background-color: var(--subject-item-bg);
+  transition: background-color 0.2s;
+}
+
+.subject-item:hover {
+  background-color: var(--subject-item-hover-bg);
+}
+
+.p-8{
+  padding: 0rem;
+}

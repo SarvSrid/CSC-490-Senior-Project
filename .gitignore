@@ -1,2 +1,31 @@
+# Next.js
+.next
 node_modules
-/aitutor-frontend
+
+# Flask
+__pycache__
+*.pyc
+/venv
+Include
+Lib
+Scripts
+pyvenv.cfg
+
+# Ignore specific files in backend/venv
+akin_learning/backend/venv/config.py
+akin_learning/backend/venv/test_db_connection.py
+
+# Python
+.env
+.venv
+env/
+
+# PostgreSQL
+*.sqlite3
+
+# IDE
+.vscode
+.idea
+
+#if it does not remove normally through .gitignore
+git rm --cached akin_learning/backend/venv/test_db_connection.py
