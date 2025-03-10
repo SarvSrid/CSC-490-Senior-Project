@@ -1,17 +1,15 @@
-# filepath: /home/srinman/git/oauth/scenario1/app.py
 from flask import Flask, jsonify, request, abort
 from flask_cors import CORS  # Enable Cross-Origin Resource Sharing
 from google.oauth2 import id_token
 from google.auth.transport import requests as grequests
 from werkzeug.exceptions import HTTPException
-import sys
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS
 
 # Static user data for 5 users mapped by their email addresses.
 registered_users = {
-    "xyz@gmail.com": {
+    "sarveshsridhe@gmail.com": {
         "username": "User1",
         "address": "100 First St, CityA",
         "phone": "111-111-1111"
@@ -43,10 +41,13 @@ GOOGLE_CLIENT_ID = "206020990733-8uem3ibl5mjq7rdh44m0o95vmv8niolt.apps.googleuse
 
 @app.route('/api/dashboard', methods=['GET'])
 def dashboard():
-    token = request.headers.get('Authorization')
-    print(f"Received token: {token}", flush=True)
-    if not token:
+    auth_header = request.headers.get('Authorization')
+    if not auth_header:
         abort(401, description="Missing authorization token")
+    
+    token = auth_header.split(' ')[1] if ' ' in auth_header else auth_header
+    print(f"Received token: {token}", flush=True)
+    
     try:
         # Verify the token using Google's public keys.
         idinfo = id_token.verify_oauth2_token(token, grequests.Request(), GOOGLE_CLIENT_ID)
@@ -71,4 +72,4 @@ def dashboard():
         abort(500, description="Internal server error")
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=5001)

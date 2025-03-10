@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -6,8 +6,8 @@ import Link from "next/link";
 import Cookies from "js-cookie";
 
 interface ProgressData {
-  topic: string;
-  percentage: number;
+  subject: string;
+  average_progress: number;
 }
 
 export default function Dashboard() {
@@ -142,10 +142,10 @@ export default function Dashboard() {
         </nav>
         <div className="sidebar-footer">
           <div className="logout">
-          <Link href="/auth/signin/signin1">
-            <i className="fa-solid fa-right-from-bracket"></i>
-            <span className="nav-text">Log Out</span>
-          </Link>
+            <Link href="/auth/signin/signin1">
+              <i className="fa-solid fa-right-from-bracket"></i>
+              <span className="nav-text">Log Out</span>
+            </Link>
           </div>
         </div>
       </aside>
@@ -184,30 +184,37 @@ export default function Dashboard() {
         </div>
       </div>
 
+
+
+
       {/* Main Dashboard Content */}
       <div className={`main-content ${isDarkMode ? "bg-gray-900 text-white" : "bg-gray-100 text-black"}`}>
         <main className="dashboard">
           <h1 className="dashboard-title">Progress</h1>
           <div className="progress-grid">
             {progress.map((item, index) => (
-              <Link href="/user/topics" key={index}>
+              <Link href={`/user/topics?subject=${item.subject}`} key={index}>
                 <div className="progress-card">
                   <div
                     className="progress-circle"
-                    data-value={item.percentage.toString()}
+                    data-value={item.average_progress.toString()}
                     data-fill="#FFD966"
                     data-bg={isDarkMode ? "#4B5563" : "#FFF9E6"}
                   >
                     <div className="circle-fill"></div>
-                    <div className="circle-text">{item.percentage}%</div>
+                    <div className="circle-text">{item.average_progress}%</div>
                   </div>
-                  <span className="language-label">{item.topic}</span>
+                  <span className="subject-label">{item.subject}</span>
                 </div>
               </Link>
             ))}
           </div>
         </main>
       </div>
+
+
+
+
 
       {/* Slide-Out Panel for Subjects */}
       <div className={`subjects-slideout ${isDarkMode ? "bg-gray-800 text-white" : "bg-white text-black"}`} id="subjectsSlideout">
@@ -223,8 +230,6 @@ export default function Dashboard() {
           <div className="subject-item">Assembly language</div>
         </div>
       </div>
-
-      
     </div>
   );
 }

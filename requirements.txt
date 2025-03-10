@@ -1,10 +1,11 @@
-Flask
+flask
 flask_sqlalchemy
-Flask-JWT-Extended
+flask-jwt-extended
 psycopg2-binary
 python-dotenv
-Flask-Dance
+flask-dance
 oauthlib>=3.2
 requests-oauthlib
 flask-cors
 google-auth
+requests
