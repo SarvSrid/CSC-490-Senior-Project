@@ -6,6 +6,7 @@ import Link from "next/link";
 import Cookies from "js-cookie";
 
 interface ProgressData {
+  subject_id: number; // Add subject_id for navigation
   subject: string;
   average_progress: number;
 }
@@ -184,16 +185,13 @@ export default function Dashboard() {
         </div>
       </div>
 
-
-
-
       {/* Main Dashboard Content */}
       <div className={`main-content ${isDarkMode ? "bg-gray-900 text-white" : "bg-gray-100 text-black"}`}>
         <main className="dashboard">
           <h1 className="dashboard-title">Progress</h1>
           <div className="progress-grid">
             {progress.map((item, index) => (
-              <Link href={`/user/topics?subject=${item.subject}`} key={index}>
+              <Link href={`/user/topics?subject_id=${item.subject_id}`} key={index}>
                 <div className="progress-card">
                   <div
                     className="progress-circle"
@@ -211,10 +209,6 @@ export default function Dashboard() {
           </div>
         </main>
       </div>
-
-
-
-
 
       {/* Slide-Out Panel for Subjects */}
       <div className={`subjects-slideout ${isDarkMode ? "bg-gray-800 text-white" : "bg-white text-black"}`} id="subjectsSlideout">

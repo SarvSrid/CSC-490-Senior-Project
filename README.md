@@ -27,3 +27,7 @@ I updated the frontend pages to reference users from the database and should cal
 
 ## Important change: (3/5/25)
 In user dashboard, you will see that there is a test.html there, thats where I kept the previous code that you made before. It didnt contain any call to the backend and I jsut implemnted it into the user/dashboard/page.tsx. Currently the progress circles contain the same color but other than that, everything else is the same. 
+
+## Important changes (3/10/25)
+I have made changes to the models.py in the database and the init.sql database as the topics table needed a difficulty_level
+to correspond with the main and branch questions. The difficulty_level only has a range from 1-3 (beginner, intermediate, and advanced). 

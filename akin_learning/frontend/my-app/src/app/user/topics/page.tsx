@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 
-interface Subtopic {
+interface Topic {
   id: number;
   name: string;
   difficulty_level: number;
@@ -18,21 +18,51 @@ const difficultyLabels: { [key: number]: string } = {
 
 const TopicsPage = () => {
   const searchParams = useSearchParams();
-  const topic_id = searchParams ? searchParams.get("topic_id") : null; // Get topic_id from query parameters
-  const [subtopics, setSubtopics] = useState<Subtopic[]>([]);
+  const subject_id = searchParams ? searchParams.get("subject_id") : null;
+
+  console.log("Subject ID:", subject_id); // Debugging
+
+  const [topics, setTopics] = useState<Topic[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (topic_id) {
-      // Fetch subtopics for the selected topic
-      fetch(`http://localhost:5002/api/subtopics?topic_id=${topic_id}`)
-        .then((response) => response.json())
-        .then((data) => {
-          console.log("Fetched subtopics:", data);
-          setSubtopics(data);
+    if (subject_id) {
+      fetch(`http://localhost:5002/api/topics?subject_id=${subject_id}`)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`Error fetching topics: ${response.statusText}`);
+          }
+          return response.json();
         })
-        .catch((error) => console.error("Error fetching subtopics:", error));
+        .then((data) => {
+          if (!Array.isArray(data)) {
+            throw new Error("API response is not an array");
+          }
+          console.log("Fetched topics:", data);
+          setTopics(data);
+        })
+        .catch((error) => {
+          console.error("Error fetching topics:", error);
+          setError(error.message);
+        });
     }
-  }, [topic_id]);
+  }, [subject_id]);
+
+  if (!subject_id) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <p className="text-red-500">Error: Subject ID is missing or invalid.</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <p className="text-red-500">Error: {error}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex">
@@ -56,21 +86,21 @@ const TopicsPage = () => {
 
       {/* Main Content */}
       <main className="flex-1 p-10">
-        <h1 className="text-3xl font-bold text-center mb-6">Subtopics</h1>
+        <h1 className="text-3xl font-bold text-center mb-6">Topics</h1>
 
-        {/* Subtopic List */}
+        {/* Topic List */}
         <div className="grid grid-cols-3 gap-8">
-          {subtopics.map((subtopic) => (
-            <div key={subtopic.id} className="border p-5 rounded-lg shadow-md">
+          {topics.map((topic) => (
+            <div key={topic.id} className="border p-5 rounded-lg shadow-md">
               <h3 className="text-xl font-bold text-center mb-4">
-                {subtopic.name}
+                {topic.name}
               </h3>
               <p className="text-center">
-                Difficulty: {difficultyLabels[subtopic.difficulty_level]}
+                Difficulty: {difficultyLabels[topic.difficulty_level]}
               </p>
               <ul className="space-y-2">
                 <li className="text-gray-700">
-                  <Link href="/user/questions" legacyBehavior>
+                  <Link href={`/user/questions?topic_id=${topic.id}`} legacyBehavior>
                     <a className="hover:underline">• View Questions</a>
                   </Link>
                 </li>

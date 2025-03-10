@@ -23,7 +23,8 @@ CREATE TABLE "subject" (
 CREATE TABLE "topic" (
     "id" INTEGER NOT NULL PRIMARY KEY,
     "subject_id" SMALLINT NOT NULL REFERENCES "subject"("id"),
-    "name" VARCHAR(255) NOT NULL
+    "name" VARCHAR(255) NOT NULL,
+    "difficulty_level" SMALLINT NOT NULL DEFAULT 1
 );
 
 CREATE TABLE "main_question" (

@@ -21,10 +21,11 @@ class Subject(db.Model):
     name = db.Column(db.String(255), nullable=False)
 
 class Topic(db.Model):
-    __tablename__ = 'topic'
+    __tablename__ = "topic"
     id = db.Column(db.Integer, primary_key=True)
-    subject_id = db.Column(db.SmallInteger, db.ForeignKey('subject.id'), nullable=False)
+    subject_id = db.Column(db.SmallInteger, db.ForeignKey("subject.id"), nullable=False)
     name = db.Column(db.String(255), nullable=False)
+    difficulty_level = db.Column(db.SmallInteger, nullable=False, default=1)
 
 class MainQuestion(db.Model):
     __tablename__ = 'main_question'

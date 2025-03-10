@@ -6,47 +6,60 @@ from config import Config
 from utils.db import db
 from models import Progress, Topic, Subject
 
-#If you have issues with connecting to the database, you can print the database URI to verify
+# If you have issues with connecting to the database, you can print the database URI to verify
 # $env:DATABASE_URL="postgresql://myuser:mypassword@localhost:5432/mydatabase"
 
 app = Flask(__name__)
 app.config.from_object(Config)
 
 # Print the database URI to verify
-print("SQLALCHEMY_DATABASE_URI:", app.config['SQLALCHEMY_DATABASE_URI'])
+print("SQLALCHEMY_DATABASE_URI:", app.config['SQLALCHEMY_DATABASE_URI'], flush=True)
 
 # Initialize extensions
 db.init_app(app)
 jwt = JWTManager(app)
 CORS(app)  # Enable CORS
 
-# Define the route handler
 @app.route('/api/progress', methods=['GET'])
-def get_average_progress():
-    user_id = request.args.get("user_id")  # Get user_id from query params
-    print("Received user_id:", user_id)
-    if not user_id:
-        return jsonify({"error": "user_id is required"}), 400
+def get_progress():
+    try:
+        user_id = request.args.get("user_id")  # Get user_id from query params
+        print("Received user_id:", user_id, flush=True)
+        if not user_id:
+            return jsonify({"error": "user_id is required"}), 400
 
-    # Query to calculate the average progress for each subject
-    average_progress_data = db.session.query(
-        Subject.name,
-        db.func.round(db.func.avg(Progress.percentage), 2).label("average_progress")
-    ).join(Topic, Subject.id == Topic.subject_id
-    ).join(Progress, Topic.id == Progress.topic_id
-    ).filter(Progress.user_id == user_id
-    ).group_by(Subject.name).all()
+        # Fetch progress data for the user, grouped by subject
+        progress_data = db.session.query(
+            Subject.id.label("subject_id"),  # Include subject_id
+            Subject.name.label("subject_name"),  # Include subject name
+            db.func.avg(Progress.percentage).label("average_percentage")  # Calculate average percentage
+        ).join(Topic, Topic.subject_id == Subject.id) \
+         .join(Progress, Progress.topic_id == Topic.id) \
+         .filter(Progress.user_id == user_id) \
+         .group_by(Subject.id, Subject.name) \
+         .all()
 
-    # Format the response
-    response = [{"subject": subject_name, "average_progress": float(avg_progress)} 
-                for subject_name, avg_progress in average_progress_data]
+        if not progress_data:
+            return jsonify({"error": "No progress data found for the given user_id"}), 404
 
-    return jsonify(response), 200
+        # Format the response
+        response = [
+            {
+                "subject_id": row.subject_id,
+                "subject": row.subject_name,
+                "average_progress": float(row.average_percentage)  # Convert to float
+            }
+            for row in progress_data
+        ]
+        return jsonify(response), 200
+    except Exception as e:
+        print(f"Error occurred: {e}", flush=True)
+        return jsonify({"error": "An error occurred while fetching progress data"}), 500
+
 # Create database tables
 with app.app_context():
     db.create_all()
 
 if __name__ == '__main__':
     print("Please rename this file from 'progress.py' to 'topicAPI.py' to follow the naming convention.")
-    app.run(debug=True)
-    
+    app.run(debug=True, port=5000)
