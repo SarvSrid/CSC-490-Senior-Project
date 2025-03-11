@@ -36,6 +36,25 @@ class MainQuestion(db.Model):
     topic_id = db.Column(db.Integer, db.ForeignKey('topic.id'), nullable=False)
     difficulty_level = db.Column(db.SmallInteger, nullable=False)
     progress = db.Column(db.BigInteger, nullable=False)
+    # Relationship to options
+    options = db.relationship("QuestionOption", backref="question", lazy=True)
+
+    #Debugging purposes
+    def __repr__(self):
+        return f"<MainQuestion {self.header}>"
+    
+# New table added for branch questions choices (a - d)
+class QuestionOption(db.Model):
+    __tablename__ = "question_option"
+
+    id = db.Column(db.BigInteger, primary_key=True)
+    question_id = db.Column(db.BigInteger, db.ForeignKey("main_question.id"), nullable=False)
+    option_text = db.Column(db.String(255), nullable=False)
+    is_correct = db.Column(db.Boolean, nullable=False, default=False)
+
+    #Debugging purposes
+    def __repr__(self):
+        return f"<QuestionOption {self.option_text}>"
 
 class BranchQuestion(db.Model):
     __tablename__ = 'branch_question'
@@ -69,3 +88,7 @@ class Progress(db.Model):
     active_questions = db.Column(db.SmallInteger, nullable=False)
     completed_questions = db.Column(db.SmallInteger, nullable=False)
     percentage = db.Column(db.Numeric(5, 2), nullable=False)
+
+    #Debugging purposes
+    def __repr__(self):
+        return f"<Progress {self.id}>"

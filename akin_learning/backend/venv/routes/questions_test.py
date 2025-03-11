@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
-from flask_jwt_extended import JWTManager
+from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity
 from flask_cors import CORS
 from config import Config
 from utils.db import db
@@ -12,19 +12,18 @@ app.config.from_object(Config)
 
 # Initialize extensions
 db.init_app(app)
-jwt = JWTManager(app)  # Keep JWTManager for future use
+jwt = JWTManager(app)
 CORS(app)  # Enable CORS
-
-# Hardcoded user_id for testing
-TEST_USER_ID = 1
 
 # Routes for questions
 @app.route('/api/questions', methods=['GET'])
+@jwt_required()
 def get_questions():
     """
-    Fetch all main questions and their options for the hardcoded user.
+    Fetch all main questions and their options for the logged-in user.
     """
-    main_questions = MainQuestion.query.filter_by(user_id=TEST_USER_ID).all()
+    user_id = get_jwt_identity()
+    main_questions = MainQuestion.query.filter_by(user_id=user_id).all()
 
     response = []
     for main_question in main_questions:
@@ -49,17 +48,19 @@ def get_questions():
 
 
 @app.route('/api/questions', methods=['POST'])
+@jwt_required()
 def create_question():
     """
-    Create a new main question with options for the hardcoded user.
+    Create a new main question with options.
     """
     data = request.get_json()
+    user_id = get_jwt_identity()
 
     # Create the main question
     new_main_question = MainQuestion(
         header=data['header'],
         subtext=data['subtext'],
-        user_id=TEST_USER_ID,  # Use hardcoded user_id
+        user_id=user_id,
         topic_id=data['topic_id'],
         difficulty_level=data['difficulty_level'],
         progress=0
@@ -81,10 +82,12 @@ def create_question():
 
 
 @app.route('/api/questions/<int:question_id>/answer', methods=['POST'])
+@jwt_required()
 def answer_question(question_id):
     """
-    Handle user's answer to a question and update progress for the hardcoded user.
+    Handle user's answer to a question and update progress.
     """
+    user_id = get_jwt_identity()
     data = request.get_json()
 
     # Fetch the question and correct answer
@@ -95,10 +98,10 @@ def answer_question(question_id):
     is_correct = (data['selected_option_id'] == correct_option.id)
 
     # Update progress
-    progress = Progress.query.filter_by(user_id=TEST_USER_ID, topic_id=question.topic_id).first()
+    progress = Progress.query.filter_by(user_id=user_id, topic_id=question.topic_id).first()
     if not progress:
         progress = Progress(
-            user_id=TEST_USER_ID,
+            user_id=user_id,
             topic_id=question.topic_id,
             active_questions=0,
             completed_questions=0
