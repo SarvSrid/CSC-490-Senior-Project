@@ -24,7 +24,7 @@ def get_questions():
     """
     Fetch all main questions and their options for the hardcoded user.
     """
-    main_questions = MainQuestion.query.filter_by(user_id=TEST_USER_ID).all()
+    main_questions = MainQuestion.query.filter_by(user_id=TEST_USER_ID).order_by(MainQuestion.id).all()
 
     response = []
     for main_question in main_questions:
@@ -38,6 +38,7 @@ def get_questions():
             'topic_id': main_question.topic_id,
             'difficulty_level': main_question.difficulty_level,
             'progress': main_question.progress,
+            'answered_correctly': main_question.progress == 100,  # Add this line
             'options': [{
                 'id': opt.id,
                 'option_text': opt.option_text,

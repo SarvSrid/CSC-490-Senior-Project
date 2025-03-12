@@ -121,12 +121,12 @@ export default function Dashboard() {
                 <span className="nav-text">Home</span>
               </Link>
             </li>
-            <li>
+            {/* <li>
               <Link href="/user/topics">
                 <i className="fa-solid fa-book"></i>
                 <span className="nav-text">Subjects</span>
               </Link>
-            </li>
+            </li> */}
             <li>
               <Link href="/ai-tutor">
                 <i className="fa-solid fa-robot"></i>

@@ -1,67 +1,106 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
+
+interface Option {
+  id: number;
+  option_text: string;
+  is_correct: boolean;
+}
+
+interface Question {
+  id: number;
+  header: string;
+  subtext: string;
+  options: Option[];
+  answered_correctly: boolean; // Add this field
+}
 
 const QuestionsPage: React.FC = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [selectedOptionId, setSelectedOptionId] = useState<number | null>(null);
+  const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
 
-  const questions = [
-    {
-      question: "What is Python?",
-      options: [
-        "A type of snake",
-        "A high-level programming language",
-        "A type of coffee",
-        "A brand of car",
-      ],
-      correctAnswer: "A high-level programming language",
-    },
-    {
-      question: "How do you declare a variable in Python?",
-      options: [
-        "var x = 10;",
-        "int x = 10;",
-        "x = 10",
-        "declare x = 10;",
-      ],
-      correctAnswer: "x = 10",
-    },
-    {
-      question: "What are Python's basic data types?",
-      options: [
-        "Integers, floats, strings, lists, tuples, sets, and dictionaries",
-        "Numbers, characters, arrays, and structures",
-        "Classes, objects, methods, and attributes",
-        "Files, directories, and paths",
-      ],
-      correctAnswer: "Integers, floats, strings, lists, tuples, sets, and dictionaries",
-    },
-    {
-      question: "How do you create a function in Python?",
-      options: [
-        "function myFunction() {}",
-        "def my_function():",
-        "create function my_function()",
-        "function: my_function()",
-      ],
-      correctAnswer: "def my_function():",
-    },
-    {
-      question: "What is a list comprehension?",
-      options: [
-        "A way to create lists using a for loop",
-        "A concise way to create lists",
-        "A method to sort lists",
-        "A function to filter lists",
-      ],
-      correctAnswer: "A concise way to create lists",
-    },
-  ];
+  // Fetch questions from the backend
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      try {
+        const response = await fetch("http://localhost:5003/api/questions");
+        if (!response.ok) {
+          throw new Error("Failed to fetch questions");
+        }
+        const data = await response.json();
+        setQuestions(data);
+      } catch (error) {
+        console.error("Error fetching questions:", error);
+      }
+    };
 
+    fetchQuestions();
+  }, []);
+
+  // Handle question change
   const handleQuestionChange = (index: number) => {
     setCurrentQuestionIndex(index);
+    setSelectedOptionId(null); // Reset selected option
+    setIsCorrect(null); // Reset correctness feedback
   };
+
+  // Handle option selection
+  const handleOptionSelect = (optionId: number) => {
+    setSelectedOptionId(optionId);
+  };
+
+  // Handle answer submission
+  const handleAnswerSubmit = async () => {
+    if (selectedOptionId === null) {
+      alert("Please select an option before submitting.");
+      return;
+    }
+
+    const currentQuestion = questions[currentQuestionIndex];
+    try {
+      const response = await fetch(
+        `http://localhost:5003/api/questions/${currentQuestion.id}/answer`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            selected_option_id: selectedOptionId,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to submit answer");
+      }
+
+      const result = await response.json();
+      setIsCorrect(result.is_correct);
+      alert(result.is_correct ? "Correct!" : "Incorrect!");
+
+      // Update the question's answered_correctly status
+      setQuestions((prevQuestions) =>
+        prevQuestions.map((question) =>
+          question.id === currentQuestion.id
+            ? { ...question, answered_correctly: result.is_correct }
+            : question
+        )
+      );
+    } catch (error) {
+      console.error("Error submitting answer:", error);
+    }
+  };
+
+  if (questions.length === 0) {
+    return <div>Loading questions...</div>;
+  }
+
+  const currentQuestion = questions[currentQuestionIndex];
 
   return (
     <div className="flex">
@@ -72,14 +111,14 @@ const QuestionsPage: React.FC = () => {
           <Link href="/user/dashboard">
             <button className="block text-left">🏠 Home</button>
           </Link>
-          <Link href="/user/topics">
+          {/* <Link href="/user/topics">
             <button className="block text-left font-semibold">📖 Subjects</button>
-          </Link>
+          </Link> */}
           <button className="block text-left">🤖 AI Tutor</button>
           <button className="block text-left">⚙️ Settings</button>
         </nav>
         <Link href="/auth/signin/signin1">
-        <button className="absolute bottom-5 left-5">🚪 Log Out</button>
+          <button className="absolute bottom-5 left-5">🚪 Log Out</button>
         </Link>
       </aside>
 
@@ -96,7 +135,11 @@ const QuestionsPage: React.FC = () => {
             <button
               key={index}
               onClick={() => handleQuestionChange(index)}
-              className={`mx-2 px-4 py-2 rounded ${currentQuestionIndex === index ? 'bg-blue-500 text-white' : 'bg-gray-200 text-black'}`}
+              className={`mx-2 px-4 py-2 rounded ${
+                currentQuestionIndex === index
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-200 text-black"
+              }`}
             >
               {index + 1}
             </button>
@@ -105,20 +148,40 @@ const QuestionsPage: React.FC = () => {
 
         {/* Current Question */}
         <div className="border p-5 rounded-lg shadow-md">
-          <h3 className="text-xl font-bold mb-2">{questions[currentQuestionIndex].question}</h3>
+          <h3 className="text-xl font-bold mb-2">{currentQuestion.header}</h3>
+          <p className="text-gray-600 mb-4">{currentQuestion.subtext}</p>
           <div className="space-y-2">
-            {questions[currentQuestionIndex].options.map((option, optionIndex) => (
-              <label key={optionIndex} className="block">
+            {currentQuestion.options.map((option) => (
+              <label key={option.id} className="block">
                 <input
                   type="radio"
-                  name={`question-${currentQuestionIndex}`}
-                  value={option}
+                  name={`question-${currentQuestion.id}`}
+                  value={option.id}
+                  checked={selectedOptionId === option.id}
+                  onChange={() => handleOptionSelect(option.id)}
                   className="mr-2"
+                  disabled={currentQuestion.answered_correctly} // Disable if answered correctly
                 />
-                {option}
+                {option.option_text}
               </label>
             ))}
           </div>
+          <button
+            onClick={handleAnswerSubmit}
+            className={`mt-4 px-4 py-2 rounded ${
+              currentQuestion.answered_correctly
+                ? "bg-gray-300 cursor-not-allowed"
+                : "bg-blue-500 text-white"
+            }`}
+            disabled={currentQuestion.answered_correctly} // Disable if answered correctly
+          >
+            Submit Answer
+          </button>
+          {isCorrect !== null && (
+            <p className={`mt-2 ${isCorrect ? "text-green-500" : "text-red-500"}`}>
+              {isCorrect ? "Correct!" : "Incorrect!"}
+            </p>
+          )}
         </div>
       </main>
 
