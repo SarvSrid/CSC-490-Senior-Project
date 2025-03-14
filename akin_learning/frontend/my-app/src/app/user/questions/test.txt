@@ -14,7 +14,7 @@ interface Question {
   header: string;
   subtext: string;
   options: Option[];
-  answered_correctly: boolean;
+  answered_correctly: boolean; // Add this field
 }
 
 const QuestionsPage: React.FC = () => {
@@ -22,9 +22,6 @@ const QuestionsPage: React.FC = () => {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [selectedOptionId, setSelectedOptionId] = useState<number | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
-  const [isChatbotOpen, setIsChatbotOpen] = useState(false); // State to control chatbot visibility
-  const [chatbotMessages, setChatbotMessages] = useState<{ role: string; content: string }[]>([]); // Chatbot conversation history
-  const [isChatbotInitialized, setIsChatbotInitialized] = useState(false); // Track if chatbot has been initialized
 
   // Fetch questions from the backend
   useEffect(() => {
@@ -45,28 +42,10 @@ const QuestionsPage: React.FC = () => {
   }, []);
 
   // Handle question change
-  const handleQuestionChange = async (index: number) => {
+  const handleQuestionChange = (index: number) => {
     setCurrentQuestionIndex(index);
     setSelectedOptionId(null); // Reset selected option
     setIsCorrect(null); // Reset correctness feedback
-
-    // Send the current question and answer choices to the chatbot
-    const currentQuestion = questions[index];
-    const questionContext = `I need help with this question: ${currentQuestion.header}. ${currentQuestion.subtext} Here are the answer choices: ${currentQuestion.options.map(option => option.option_text).join(', ')}`;
-
-    const response = await fetch("http://localhost:5004/api/chatbot", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        message: questionContext,
-        conversation_history: chatbotMessages,
-      }),
-    });
-
-    const data = await response.json();
-    setChatbotMessages(data.conversation_history);
   };
 
   // Handle option selection
@@ -117,54 +96,6 @@ const QuestionsPage: React.FC = () => {
     }
   };
 
-  // Handle chatbot message submission
-  const handleChatbotMessageSubmit = async (message: string) => {
-    if (!message.trim()) return;
-
-    // Send message to backend
-    const response = await fetch("http://localhost:5004/api/chatbot", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        message: message,
-        conversation_history: chatbotMessages,
-      }),
-    });
-
-    const data = await response.json();
-    setChatbotMessages(data.conversation_history);
-  };
-
-  // Handle chatbot button click
-  const handleChatbotButtonClick = async () => {
-    setIsChatbotOpen(!isChatbotOpen);
-
-    // Initialize chatbot only once
-    if (!isChatbotInitialized) {
-      setIsChatbotInitialized(true);
-
-      // Pass the current question to the chatbot
-      const currentQuestion = questions[currentQuestionIndex];
-      const questionContext = `I need help with this question: ${currentQuestion.header}. ${currentQuestion.subtext} Here are the answer choices: ${currentQuestion.options.map(option => option.option_text).join(', ')}`;
-
-      const response = await fetch("http://localhost:5004/api/chatbot", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          message: questionContext,
-          conversation_history: [],
-        }),
-      });
-
-      const data = await response.json();
-      setChatbotMessages(data.conversation_history);
-    }
-  };
-
   if (questions.length === 0) {
     return <div>Loading questions...</div>;
   }
@@ -180,6 +111,10 @@ const QuestionsPage: React.FC = () => {
           <Link href="/user/dashboard">
             <button className="block text-left">🏠 Home</button>
           </Link>
+          {/* <Link href="/user/topics">
+            <button className="block text-left font-semibold">📖 Subjects</button>
+          </Link> */}
+          <button className="block text-left">🤖 AI Tutor</button>
           <button className="block text-left">⚙️ Settings</button>
         </nav>
         <Link href="/auth/signin/signin1">
@@ -250,49 +185,6 @@ const QuestionsPage: React.FC = () => {
         </div>
       </main>
 
-      {/* Chatbot Side Panel */}
-      <div
-        className={`fixed top-0 right-0 h-full w-1/4 bg-white shadow-lg transform transition-transform duration-300 ${
-          isChatbotOpen ? "translate-x-0" : "translate-x-full"
-        }`}
-      >
-        <div className="p-4 h-full flex flex-col">
-          <h2 className="text-lg font-bold mb-4">AI Chatbot</h2>
-          <div className="mb-4 flex-grow overflow-y-auto border p-2 rounded">
-            {chatbotMessages.map((msg, index) => (
-              <div key={index} className={`mb-2 ${msg.role === "user" ? "text-right" : "text-left"}`}>
-                <span className={`inline-block p-2 rounded ${msg.role === "user" ? "bg-blue-500 text-white" : "bg-gray-200 text-black"}`}>
-                  {msg.content}
-                </span>
-              </div>
-            ))}
-          </div>
-          <div className="flex">
-            <input
-              type="text"
-              placeholder="Type your question..."
-              className="flex-1 p-2 border rounded-l"
-              onKeyPress={(e) => {
-                if (e.key === "Enter") {
-                  handleChatbotMessageSubmit(e.currentTarget.value);
-                  e.currentTarget.value = ""; // Clear input field
-                }
-              }}
-            />
-            <button
-              onClick={() => {
-                const input = document.querySelector("input[type='text']") as HTMLInputElement;
-                handleChatbotMessageSubmit(input.value);
-                input.value = ""; // Clear input field
-              }}
-              className="bg-blue-500 text-white p-2 rounded-r"
-            >
-              Send
-            </button>
-          </div>
-        </div>
-      </div>
-
       {/* User Info */}
       <div className="absolute top-5 right-5 flex items-center space-x-3">
         <div className="bg-gray-200 rounded-full w-10 h-10 flex items-center justify-center">
@@ -302,12 +194,11 @@ const QuestionsPage: React.FC = () => {
           <p className="font-semibold">User123</p>
           <p className="text-xs text-gray-500">ID: 1234567</p>
         </div>
-        <button
-          onClick={handleChatbotButtonClick}
-          className="bg-blue-500 text-white px-4 py-2 rounded"
-        >
-          Chatbot
-        </button>
+        <Link href="/user/chatbot">
+          <button className="bg-blue-500 text-white px-4 py-2 rounded">
+            Chatbot
+          </button>
+        </Link>
       </div>
     </div>
   );

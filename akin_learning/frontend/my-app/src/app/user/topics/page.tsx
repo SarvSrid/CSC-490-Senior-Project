@@ -73,9 +73,9 @@ const TopicsPage = () => {
           <Link href="/user/dashboard">
             <button className="block text-left">🏠 Home</button>
           </Link>
-          <Link href="/user/topics">
+          {/* <Link href="/user/topics">
             <button className="block text-left font-semibold">📖 Subjects</button>
-          </Link>
+          </Link> */}
           <button className="block text-left">🤖 AI Tutor</button>
           <button className="block text-left">⚙️ Settings</button>
         </nav>
