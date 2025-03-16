@@ -1,7 +1,9 @@
 import openai
+import logging
 from config import Config
 from flask_cors import CORS
 from flask import Flask, request, jsonify
+from datetime import datetime
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -12,6 +14,9 @@ openai.api_key = Config.OPENAI_API_KEY
 # Initialize extensions
 CORS(app)
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+
 @app.route('/api/chatbot', methods=['POST'])
 def chatbot():
     """
@@ -21,19 +26,24 @@ def chatbot():
     user_input = data.get('message')
     conversation_history = data.get('conversation_history', [])
 
-    # Add the user's input to the conversation history
-    conversation_history.append({"role": "user", "content": user_input})
+    # Add the user's input to the conversation history with a timestamp
+    user_timestamp = datetime.now().strftime('%I:%M %p')
+    conversation_history.append({"role": "user", "content": user_input, "timestamp": user_timestamp})
 
-    # Generate chatbot response
-    assistant_reply, updated_history = generate_chatbot_response(conversation_history)
+    try:
+        # Generate chatbot response
+        assistant_reply, updated_history = generate_chatbot_response(conversation_history)
 
-    # Filter out system messages before sending the conversation history to the frontend
-    filtered_history = [msg for msg in updated_history if msg['role'] != 'system']
+        # Filter out system messages before sending the conversation history to the frontend
+        filtered_history = [msg for msg in updated_history if msg['role'] != 'system']
 
-    return jsonify({
-        'reply': assistant_reply,
-        'conversation_history': filtered_history
-    }), 200
+        return jsonify({
+            'reply': assistant_reply,
+            'conversation_history': filtered_history
+        }), 200
+    except Exception as e:
+        logging.error(f"Error in chatbot endpoint: {e}")
+        return jsonify({"error": "An error occurred while processing your request."}), 500
 
 def generate_chatbot_response(conversation_history):
     """
@@ -53,19 +63,24 @@ def generate_chatbot_response(conversation_history):
     if not any(msg['role'] == 'system' for msg in conversation_history):
         conversation_history.insert(0, system_prompt)
 
-    # Generate a response using OpenAI
-    response = openai.ChatCompletion.create(
-        model="o3-mini",  # Using o3-mini model
-        messages=conversation_history
-    )
+    try:
+        # Generate a response using OpenAI
+        response = openai.ChatCompletion.create(
+            model="o3-mini",  # Use o3-mini for reasoning model
+            messages=conversation_history
+        )
 
-    # Extract the assistant's reply
-    assistant_reply = response.choices[0].message['content']
+        # Extract the assistant's reply
+        assistant_reply = response.choices[0].message['content']
 
-    # Add the assistant's reply to the conversation history
-    conversation_history.append({"role": "assistant", "content": assistant_reply})
+        # Add the assistant's reply to the conversation history with a timestamp
+        assistant_timestamp = datetime.now().strftime('%I:%M %p')
+        conversation_history.append({"role": "assistant", "content": assistant_reply, "timestamp": assistant_timestamp})
 
-    return assistant_reply, conversation_history
+        return assistant_reply, conversation_history
+    except Exception as e:
+        logging.error(f"Error generating chatbot response: {e}")
+        raise
 
 if __name__ == '__main__':
     # Run the Flask app on port 5004

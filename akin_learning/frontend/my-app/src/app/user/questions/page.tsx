@@ -17,16 +17,22 @@ interface Question {
   answered_correctly: boolean;
 }
 
+interface ChatbotMessage {
+  role: "user" | "assistant";
+  content: string;
+  timestamp: string;
+}
+
 const QuestionsPage: React.FC = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [selectedOptionId, setSelectedOptionId] = useState<number | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
-  const [isChatbotOpen, setIsChatbotOpen] = useState(false); // State to control chatbot visibility
-  const [chatbotMessages, setChatbotMessages] = useState<{ role: string; content: string }[]>([]); // Chatbot conversation history
-  const [isChatbotInitialized, setIsChatbotInitialized] = useState(false); // Track if chatbot has been initialized
+  const [isChatbotOpen, setIsChatbotOpen] = useState(false);
+  const [chatbotMessages, setChatbotMessages] = useState<ChatbotMessage[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isChatbotLoading, setIsChatbotLoading] = useState(false);
 
-  // Fetch questions from the backend
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
@@ -38,43 +44,25 @@ const QuestionsPage: React.FC = () => {
         setQuestions(data);
       } catch (error) {
         console.error("Error fetching questions:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchQuestions();
   }, []);
 
-  // Handle question change
-  const handleQuestionChange = async (index: number) => {
+  const handleQuestionChange = (index: number) => {
     setCurrentQuestionIndex(index);
-    setSelectedOptionId(null); // Reset selected option
-    setIsCorrect(null); // Reset correctness feedback
-
-    // Send the current question and answer choices to the chatbot
-    const currentQuestion = questions[index];
-    const questionContext = `I need help with this question: ${currentQuestion.header}. ${currentQuestion.subtext} Here are the answer choices: ${currentQuestion.options.map(option => option.option_text).join(', ')}`;
-
-    const response = await fetch("http://localhost:5004/api/chatbot", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        message: questionContext,
-        conversation_history: chatbotMessages,
-      }),
-    });
-
-    const data = await response.json();
-    setChatbotMessages(data.conversation_history);
+    setSelectedOptionId(null);
+    setIsCorrect(null);
+    setIsChatbotOpen(false);
   };
 
-  // Handle option selection
   const handleOptionSelect = (optionId: number) => {
     setSelectedOptionId(optionId);
   };
 
-  // Handle answer submission
   const handleAnswerSubmit = async () => {
     if (selectedOptionId === null) {
       alert("Please select an option before submitting.");
@@ -104,7 +92,6 @@ const QuestionsPage: React.FC = () => {
       setIsCorrect(result.is_correct);
       alert(result.is_correct ? "Correct!" : "Incorrect!");
 
-      // Update the question's answered_correctly status
       setQuestions((prevQuestions) =>
         prevQuestions.map((question) =>
           question.id === currentQuestion.id
@@ -117,55 +104,69 @@ const QuestionsPage: React.FC = () => {
     }
   };
 
-  // Handle chatbot message submission
   const handleChatbotMessageSubmit = async (message: string) => {
     if (!message.trim()) return;
-
-    // Send message to backend
-    const response = await fetch("http://localhost:5004/api/chatbot", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        message: message,
-        conversation_history: chatbotMessages,
-      }),
-    });
-
-    const data = await response.json();
-    setChatbotMessages(data.conversation_history);
-  };
-
-  // Handle chatbot button click
-  const handleChatbotButtonClick = async () => {
-    setIsChatbotOpen(!isChatbotOpen);
-
-    // Initialize chatbot only once
-    if (!isChatbotInitialized) {
-      setIsChatbotInitialized(true);
-
-      // Pass the current question to the chatbot
-      const currentQuestion = questions[currentQuestionIndex];
-      const questionContext = `I need help with this question: ${currentQuestion.header}. ${currentQuestion.subtext} Here are the answer choices: ${currentQuestion.options.map(option => option.option_text).join(', ')}`;
-
+  
+    setIsChatbotLoading(true);
+  
+    try {
+      // Send the message to the backend
       const response = await fetch("http://localhost:5004/api/chatbot", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          message: questionContext,
-          conversation_history: [],
+          message: message,
+          conversation_history: chatbotMessages, // Send the current conversation history
         }),
       });
-
+  
+      if (!response.ok) {
+        throw new Error("Failed to send message to chatbot");
+      }
+  
       const data = await response.json();
-      setChatbotMessages(data.conversation_history);
+      setChatbotMessages(data.conversation_history); // Update the conversation history with the backend's response
+    } catch (error) {
+      console.error("Error sending message to chatbot:", error);
+    } finally {
+      setIsChatbotLoading(false);
     }
   };
 
-  if (questions.length === 0) {
+  const handleChatbotButtonClick = async () => {
+    const newChatbotOpenState = !isChatbotOpen;
+    setIsChatbotOpen(newChatbotOpenState);
+
+    if (newChatbotOpenState) {
+      const currentQuestion = questions[currentQuestionIndex];
+      const questionContext = `I need help with this question: ${currentQuestion.header}. ${currentQuestion.subtext} Here are the answer choices: ${currentQuestion.options.map(option => option.option_text).join(', ')}`;
+
+      setIsChatbotLoading(true);
+      try {
+        const response = await fetch("http://localhost:5004/api/chatbot", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            message: questionContext,
+            conversation_history: [],
+          }),
+        });
+
+        const data = await response.json();
+        setChatbotMessages(data.conversation_history);
+      } catch (error) {
+        console.error("Error initializing chatbot:", error);
+      } finally {
+        setIsChatbotLoading(false);
+      }
+    }
+  };
+
+  if (isLoading) {
     return <div>Loading questions...</div>;
   }
 
@@ -225,7 +226,7 @@ const QuestionsPage: React.FC = () => {
                   checked={selectedOptionId === option.id}
                   onChange={() => handleOptionSelect(option.id)}
                   className="mr-2"
-                  disabled={currentQuestion.answered_correctly} // Disable if answered correctly
+                  disabled={currentQuestion.answered_correctly}
                 />
                 {option.option_text}
               </label>
@@ -238,7 +239,7 @@ const QuestionsPage: React.FC = () => {
                 ? "bg-gray-300 cursor-not-allowed"
                 : "bg-blue-500 text-white"
             }`}
-            disabled={currentQuestion.answered_correctly} // Disable if answered correctly
+            disabled={currentQuestion.answered_correctly}
           >
             Submit Answer
           </button>
@@ -260,12 +261,12 @@ const QuestionsPage: React.FC = () => {
           <h2 className="text-lg font-bold mb-4">AI Chatbot</h2>
           <div className="mb-4 flex-grow overflow-y-auto border p-2 rounded">
             {chatbotMessages.map((msg, index) => (
-              <div key={index} className={`mb-2 ${msg.role === "user" ? "text-right" : "text-left"}`}>
-                <span className={`inline-block p-2 rounded ${msg.role === "user" ? "bg-blue-500 text-white" : "bg-gray-200 text-black"}`}>
-                  {msg.content}
-                </span>
+              <div key={index} className={`chatbot-message ${msg.role}`}>
+                <div>{msg.content}</div>
+                <div className="text-xs text-gray-500 text-right">{msg.timestamp}</div>
               </div>
             ))}
+            {isChatbotLoading && <div className="text-center">Loading...</div>}
           </div>
           <div className="flex">
             <input
@@ -275,7 +276,7 @@ const QuestionsPage: React.FC = () => {
               onKeyPress={(e) => {
                 if (e.key === "Enter") {
                   handleChatbotMessageSubmit(e.currentTarget.value);
-                  e.currentTarget.value = ""; // Clear input field
+                  e.currentTarget.value = "";
                 }
               }}
             />
@@ -283,7 +284,7 @@ const QuestionsPage: React.FC = () => {
               onClick={() => {
                 const input = document.querySelector("input[type='text']") as HTMLInputElement;
                 handleChatbotMessageSubmit(input.value);
-                input.value = ""; // Clear input field
+                input.value = "";
               }}
               className="bg-blue-500 text-white p-2 rounded-r"
             >

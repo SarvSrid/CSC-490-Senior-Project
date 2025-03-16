@@ -894,3 +894,27 @@ d1 {
 .p-8{
   padding: 0rem;
 }
+
+/* Add this CSS to your global styles or a CSS module */
+.chatbot-message {
+  display: inline-block;
+  padding: 10px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  max-width: 80%;
+  word-wrap: break-word;
+}
+
+.chatbot-message.user {
+  background-color: #007bff;
+  color: white;
+  text-align: right;
+  align-self: flex-end;
+}
+
+.chatbot-message.assistant {
+  background-color: #f1f1f1;
+  color: black;
+  text-align: left;
+  align-self: flex-start;
+}
