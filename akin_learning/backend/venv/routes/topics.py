@@ -1,12 +1,8 @@
 from flask import Flask, jsonify, request
-from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import os
-
-# If you have issues with connecting to the database, you can print the database URI to verify
-# $env:DATABASE_URL="postgresql://myuser:mypassword@localhost:5432/mydatabase"
 
 app = Flask(__name__)
 
@@ -17,7 +13,6 @@ DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:sharksnow@localh
 print("DATABASE_URL:", DATABASE_URL, flush=True)
 
 # Initialize extensions
-jwt = JWTManager(app)
 CORS(app)  # Enable CORS
 
 # Database connection function
@@ -36,12 +31,32 @@ def get_topics():
     except ValueError:
         return jsonify({"error": "subject_id must be a valid integer"}), 400
 
-    # Fetch topics for the subject using raw SQL
+    # Hardcoded user ID
+    current_user_id = 1
+
+    # Fetch topics with progress for the subject using raw SQL
     try:
         conn = get_db_connection()
         cursor = conn.cursor(cursor_factory=RealDictCursor)
-        # Updated table name to "topic"
-        cursor.execute("SELECT id, name, difficulty_level FROM topic WHERE subject_id = %s", (subject_id,))
+        
+        # Query to get topics with progress information
+        query = """
+        SELECT 
+            t.id, 
+            t.name, 
+            t.difficulty_level,
+            COALESCE(p.percentage, 0) AS progress_percentage,
+            COALESCE(p.active_questions, 0) AS active_questions,
+            COALESCE(p.completed_questions, 0) AS completed_questions
+        FROM 
+            topic t
+        LEFT JOIN 
+            progress p ON t.id = p.topic_id AND p.user_id = %s
+        WHERE 
+            t.subject_id = %s
+        """
+        
+        cursor.execute(query, (current_user_id, subject_id))
         topics = cursor.fetchall()
         cursor.close()
         conn.close()
@@ -53,7 +68,12 @@ def get_topics():
         {
             "id": topic['id'],
             "name": topic['name'],
-            "difficulty_level": topic['difficulty_level']
+            "difficulty_level": topic['difficulty_level'],
+            "progress": {
+                "percentage": float(topic['progress_percentage']),  # Convert Decimal to float for JSON
+                "active_questions": topic['active_questions'],
+                "completed_questions": topic['completed_questions']
+            }
         }
         for topic in topics
     ]

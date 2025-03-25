@@ -8,6 +8,11 @@ interface Topic {
   id: number;
   name: string;
   difficulty_level: number;
+  progress: {
+    percentage: number;
+    active_questions: number;
+    completed_questions: number;
+  };
 }
 
 const difficultyLabels: { [key: number]: string } = {
@@ -20,7 +25,7 @@ const TopicsPage = () => {
   const searchParams = useSearchParams();
   const subject_id = searchParams ? searchParams.get("subject_id") : null;
 
-  console.log("Subject ID:", subject_id); // Debugging
+  console.log("Subject ID:", subject_id);
 
   const [topics, setTopics] = useState<Topic[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -73,9 +78,6 @@ const TopicsPage = () => {
           <Link href="/user/dashboard">
             <button className="block text-left">🏠 Home</button>
           </Link>
-          {/* <Link href="/user/topics">
-            <button className="block text-left font-semibold">📖 Subjects</button>
-          </Link> */}
           <button className="block text-left">🤖 AI Tutor</button>
           <button className="block text-left">⚙️ Settings</button>
         </nav>
@@ -91,20 +93,34 @@ const TopicsPage = () => {
         {/* Topic List */}
         <div className="grid grid-cols-3 gap-8">
           {topics.map((topic) => (
-            <div key={topic.id} className="border p-5 rounded-lg shadow-md">
+            <div key={topic.id} className="border p-5 rounded-lg shadow-md hover:shadow-lg transition-shadow">
               <h3 className="text-xl font-bold text-center mb-4">
                 {topic.name}
               </h3>
-              <p className="text-center">
+              <p className="text-center mb-2">
                 Difficulty: {difficultyLabels[topic.difficulty_level]}
               </p>
-              <ul className="space-y-2">
-                <li className="text-gray-700">
-                  <Link href={`/user/questions?topic_id=${topic.id}`} legacyBehavior>
-                    <a className="hover:underline">• View Questions</a>
-                  </Link>
-                </li>
-              </ul>
+              
+              {/* Progress Bar */}
+              <div className="w-full bg-gray-200 rounded-full h-2.5 mb-2">
+                <div 
+                  className="bg-blue-600 h-2.5 rounded-full" 
+                  style={{ width: `${topic.progress.percentage}%` }}
+                ></div>
+              </div>
+              
+              {/* Progress Text */}
+              <p className="text-center text-sm text-gray-600 mb-4">
+                {topic.progress.completed_questions} of {topic.progress.active_questions} completed ({topic.progress.percentage.toFixed(0)}%)
+              </p>
+              
+              <div className="flex justify-center">
+                <Link href={`/user/questions?topic_id=${topic.id}`} legacyBehavior>
+                  <a className="text-blue-600 hover:underline font-medium">
+                    View Questions
+                  </a>
+                </Link>
+              </div>
             </div>
           ))}
         </div>
