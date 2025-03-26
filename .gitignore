@@ -5,15 +5,15 @@ node_modules
 # Flask
 __pycache__
 *.pyc
-/venv
+venv/
 Include
 Lib
 Scripts
 pyvenv.cfg
 
-# Ignore specific files in backend/venv
-akin_learning/backend/venv/config.py
-akin_learning/backend/venv/test_db_connection.py
+
+#
+client_secret.json
 
 # Python
 .env
