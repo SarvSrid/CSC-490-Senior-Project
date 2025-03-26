@@ -8,7 +8,7 @@ from config.db_config import get_db_connection
 
 app = Flask(__name__)
 CORS(app)
-app.secret_key = ""
+app.secret_key = os.getenv("FLASK_SECRET_KEY")
 
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 

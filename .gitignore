@@ -5,15 +5,9 @@ node_modules
 # Flask
 __pycache__
 *.pyc
-venv/
-Include
-Lib
-Scripts
+.venv/
+/akin_learning/backend/routes/config/
 pyvenv.cfg
-
-
-#
-client_secret.json
 
 # Python
 .env
