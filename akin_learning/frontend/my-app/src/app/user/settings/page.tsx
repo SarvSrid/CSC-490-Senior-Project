@@ -13,15 +13,19 @@ import {
   User,
   ChevronDown,
   Menu,
+  Key,
   Globe,
 } from "lucide-react";
 
-function SubjectsPage() {
+function SettingsPage() {
   const router = useRouter();
   const pathname = usePathname() ?? "";
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  // Declare the profile button ref
+  const profileButtonRef = useRef<HTMLButtonElement | null>(null);
 
   // Toggle functions
   const toggleTheme = () => {
@@ -42,7 +46,7 @@ function SubjectsPage() {
     { icon: LogOut, label: "Log Out", path: "/auth/signin/signin1" },
   ];
 
-  // Profile Dropdown Props interface allows buttonRef to be null.
+  // Update the ref type in ProfileDropdownProps to allow null.
   interface ProfileDropdownProps {
     isProfileOpen: boolean;
     isDarkMode: boolean;
@@ -50,8 +54,7 @@ function SubjectsPage() {
     closeProfile: () => void;
     buttonRef: React.RefObject<HTMLButtonElement | null>;
   }
-
-  // ProfileDropdown component
+  
   const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
     isProfileOpen,
     isDarkMode,
@@ -73,7 +76,12 @@ function SubjectsPage() {
         }
       };
 
-      document.addEventListener("mousedown", handleClickOutside);
+      if (isProfileOpen) {
+        document.addEventListener("mousedown", handleClickOutside);
+      } else {
+        document.removeEventListener("mousedown", handleClickOutside);
+      }
+
       return () => {
         document.removeEventListener("mousedown", handleClickOutside);
       };
@@ -112,22 +120,14 @@ function SubjectsPage() {
             <User className="inline w-5 h-5 mr-3" />
             Edit Profile
           </button>
-          <Link
-  href="/user/settings"
-  className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
-    isDarkMode ? "text-white hover:bg-gray-700" : "hover:bg-gray-100"
-  }`}
->
-  <Settings className="inline w-5 h-5 mr-3" />
-  Settings
-</Link>
-
-
-
-
-
-
-
+          <button
+            className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
+              isDarkMode ? "text-white hover:bg-gray-700" : "hover:bg-gray-100"
+            }`}
+          >
+            <Settings className="inline w-5 h-5 mr-3" />
+            Settings
+          </button>
           <button
             onClick={() => {
               toggleTheme();
@@ -152,17 +152,31 @@ function SubjectsPage() {
     );
   };
 
-  // Create a ref for the profile button
-  const profileButtonRef = useRef<HTMLButtonElement | null>(null);
-
   return (
-    <div className={`min-h-screen ${isDarkMode ? "bg-gray-900 text-white" : "bg-gray-100 text-black"}`}>
+    <div
+      className={`min-h-screen ${
+        isDarkMode ? "bg-gray-800 text-white" : "bg-gray-100 text-black"
+      }`}
+    >
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 h-full ${isSidebarCollapsed ? "w-16" : "w-64"} transition-all duration-300 z-20`}
+        className={`fixed top-0 left-0 h-full ${
+          isSidebarCollapsed ? "w-16" : "w-64"
+        } transition-all duration-300 z-20`}
         style={{ background: "var(--sidebar-bg)", color: "var(--sidebar-color)" }}
       >
-        <nav className="mt-20">
+        <div className="flex items-center p-4">
+          <button
+            onClick={toggleSidebar}
+            className="p-2 hover:bg-white/10 rounded-full transition-colors"
+          >
+            <Menu className="w-6 h-6" fill="white" />
+          </button>
+          {!isSidebarCollapsed && (
+            <h1 className="ml-4 font-bold text-white">Akin Learning</h1>
+          )}
+        </div>
+        <nav className="mt-2">
           {menuItems.map((item, index) => {
             const isActive = pathname.startsWith(item.path);
             return (
@@ -188,7 +202,9 @@ function SubjectsPage() {
               return (
                 <Link key={index} href={item.path}>
                   <div
-                    className={`flex items-center ${isSidebarCollapsed ? "px-4" : "px-6"} py-3 transition-colors ${
+                    className={`flex items-center ${
+                      isSidebarCollapsed ? "px-4" : "px-6"
+                    } py-3 transition-colors ${
                       isActive ? "bg-white/20" : "hover:bg-white/10"
                     }`}
                   >
@@ -207,11 +223,16 @@ function SubjectsPage() {
 
       {/* Header */}
       <header
-        className={`fixed top-0 left-0 right-0 ${isDarkMode ? "bg-gray-900" : "bg-gray-100"} shadow-md z-30 flex items-center justify-between`}
+        className={`fixed top-0 left-0 right-0 ${
+          isDarkMode ? "bg-gray-800" : "bg-gray-100"
+        } shadow-md z-30 flex items-center justify-between`}
         style={{ padding: "8px 24px 8px 16px" }}
       >
         <div className="flex items-center space-x-2">
-          <button onClick={toggleSidebar} className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors">
+          <button
+            onClick={toggleSidebar}
+            className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors"
+          >
             <Menu className="w-6 h-6" />
           </button>
           <span className="text-xl font-bold">Akin Learning</span>
@@ -220,7 +241,9 @@ function SubjectsPage() {
           <button
             ref={profileButtonRef}
             onClick={toggleProfile}
-            className={`flex items-center px-4 py-2 rounded-full ${isDarkMode ? "bg-gray-700 hover:bg-gray-600" : "bg-gray-100 hover:bg-gray-200"} transition-colors`}
+            className={`flex items-center px-4 py-2 rounded-full ${
+              isDarkMode ? "bg-gray-700 hover:bg-gray-600" : "bg-gray-100 hover:bg-gray-200"
+            } transition-colors`}
           >
             <img
               src="https://via.placeholder.com/40"
@@ -234,80 +257,43 @@ function SubjectsPage() {
       </header>
 
       {/* Profile Dropdown */}
-      {isProfileOpen && (
-        <ProfileDropdown
-          isProfileOpen={isProfileOpen}
-          isDarkMode={isDarkMode}
-          toggleTheme={toggleTheme}
-          closeProfile={() => setIsProfileOpen(false)}
-          buttonRef={profileButtonRef}
-        />
-      )}
+      <ProfileDropdown
+        isProfileOpen={isProfileOpen}
+        isDarkMode={isDarkMode}
+        toggleTheme={toggleTheme}
+        closeProfile={() => setIsProfileOpen(false)}
+        buttonRef={profileButtonRef}
+      />
 
       {/* Main Content */}
       <div className={`${isSidebarCollapsed ? "ml-16" : "ml-64"} transition-all duration-300 pt-20 p-8`}>
-        <h2 className="text-3xl font-bold text-center mb-6">Subject</h2>
-        <h2 className="text-2xl font-semibold text-center mb-8">
-          <span className="border-b-2 border-black">Python</span>
-        </h2>
-
-        {/* Levels */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {[
-            {
-              title: "Beginner",
-              topics: [
-                "Introduction to Python",
-                "Data Types and Variables",
-                "Basic Operators",
-                "Control Structures",
-                "Basic Data Structures",
-                "Functions",
-                "Modules and Packages",
-              ],
-            },
-            {
-              title: "Intermediate",
-              topics: [
-                "List Comprehensions",
-                "Functions (Continued) File Handling",
-                "Error and Exception Handling",
-                "Classes and Object-Oriented Programming (OOP)",
-                "Intermediate Data Structures",
-                "Regular Expressions",
-                "Working with External Libraries",
-              ],
-            },
-            {
-              title: "Advanced",
-              topics: [
-                "Advanced OOP Concepts",
-                "Multithreading and Multiprocessing",
-                "Networking and APIs",
-                "Databases",
-                "Advanced Libraries and Frameworks",
-                "Memory Management and Optimization",
-                "Python C Extensions",
-              ],
-            },
-          ].map((level) => (
-            <div key={level.title} className="border p-5 rounded-lg shadow-md bg-white">
-              <h3 className="text-xl font-bold text-center mb-4">{level.title}</h3>
-              <ul className="space-y-2">
-                {level.topics.map((topic, index) => (
-                  <li key={index} className="text-gray-700">
-                    <Link href="/user/questions" className="hover:underline">
-                      • {topic}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+        <h1 className="text-4xl font-light text-center mb-12">Settings</h1>
+        <div className="flex flex-col gap-4 max-w-xl mx-auto">
+          {/* Account */}
+          <div className="flex items-center justify-between border rounded-lg p-4 hover:shadow-md transition-shadow">
+            <div className="flex items-center space-x-3">
+              <User className="w-6 h-6" />
+              <span className="font-medium">Account</span>
             </div>
-          ))}
+          </div>
+          {/* Security */}
+          <div className="flex items-center justify-between border rounded-lg p-4 hover:shadow-md transition-shadow">
+            <div className="flex items-center space-x-3">
+              <Moon className="w-6 h-6" />
+              <span className="font-medium">Security</span>
+            </div>
+          </div>
+          {/* Language */}
+          <div className="flex items-center justify-between border rounded-lg p-4 hover:shadow-md transition-shadow">
+            <div className="flex items-center space-x-3">
+              <Globe className="w-6 h-6" />
+              <span className="font-medium">Language</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-export default SubjectsPage;
+export default SettingsPage;
