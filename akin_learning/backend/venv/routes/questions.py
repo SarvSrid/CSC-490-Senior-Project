@@ -12,7 +12,7 @@ import os
 app = Flask(__name__)
 
 # Load database URL from environment variable
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:sharksnow@localhost:5432/akin_learning")
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 # Initialize extensions
 jwt = JWTManager(app)  # Keep JWTManager for future use
@@ -30,18 +30,27 @@ def get_db_connection():
 @app.route('/api/questions', methods=['GET'])
 def get_questions():
     """
-    Fetch all main questions and their options for the hardcoded user.
+    Fetch all main questions and their options for the hardcoded user and a specific topic.
     """
+    topic_id = request.args.get("topic_id")  # Get topic_id from query params
+    if not topic_id:
+        return jsonify({"error": "topic_id is required"}), 400
+
+    try:
+        topic_id = int(topic_id)  # Ensure topic_id is an integer
+    except ValueError:
+        return jsonify({"error": "topic_id must be a valid integer"}), 400
+
     try:
         conn = get_db_connection()
         cursor = conn.cursor(cursor_factory=RealDictCursor)
 
-        # Fetch main questions for the user
+        # Fetch main questions for the user and the specific topic
         cursor.execute("""
             SELECT * FROM main_question
-            WHERE user_id = %s
+            WHERE user_id = %s AND topic_id = %s
             ORDER BY id
-        """, (TEST_USER_ID,))
+        """, (TEST_USER_ID, topic_id))
         main_questions = cursor.fetchall()
 
         response = []

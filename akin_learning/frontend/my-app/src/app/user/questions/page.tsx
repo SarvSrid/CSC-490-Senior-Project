@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 interface Option {
   id: number;
@@ -24,6 +25,9 @@ interface ChatbotMessage {
 }
 
 const QuestionsPage: React.FC = () => {
+  const searchParams = useSearchParams();
+  const topicId = searchParams ? searchParams.get("topic_id") : null;
+
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [selectedOptionId, setSelectedOptionId] = useState<number | null>(null);
@@ -35,8 +39,16 @@ const QuestionsPage: React.FC = () => {
 
   useEffect(() => {
     const fetchQuestions = async () => {
+      if (!topicId) {
+        console.error("Topic ID is missing");
+        setIsLoading(false);
+        return;
+      }
+
       try {
-        const response = await fetch("http://localhost:5003/api/questions");
+        const response = await fetch(
+          `http://localhost:5003/api/questions?topic_id=${topicId}`
+        );
         if (!response.ok) {
           throw new Error("Failed to fetch questions");
         }
@@ -50,13 +62,12 @@ const QuestionsPage: React.FC = () => {
     };
 
     fetchQuestions();
-  }, []);
+  }, [topicId]);
 
   const handleQuestionChange = (index: number) => {
     setCurrentQuestionIndex(index);
     setSelectedOptionId(null);
     setIsCorrect(null);
-    setIsChatbotOpen(false);
   };
 
   const handleOptionSelect = (optionId: number) => {
@@ -90,8 +101,8 @@ const QuestionsPage: React.FC = () => {
 
       const result = await response.json();
       setIsCorrect(result.is_correct);
-      alert(result.is_correct ? "Correct!" : "Incorrect!");
 
+      // Update the question's answered_correctly status
       setQuestions((prevQuestions) =>
         prevQuestions.map((question) =>
           question.id === currentQuestion.id
@@ -106,9 +117,18 @@ const QuestionsPage: React.FC = () => {
 
   const handleChatbotMessageSubmit = async (message: string) => {
     if (!message.trim()) return;
-  
+
     setIsChatbotLoading(true);
-  
+
+    // Add user message immediately
+    const userMessage: ChatbotMessage = {
+      role: "user",
+      content: message,
+      timestamp: new Date().toLocaleTimeString(),
+    };
+
+    setChatbotMessages((prev) => [...prev, userMessage]);
+
     try {
       // Send the message to the backend
       const response = await fetch("http://localhost:5004/api/chatbot", {
@@ -118,18 +138,25 @@ const QuestionsPage: React.FC = () => {
         },
         body: JSON.stringify({
           message: message,
-          conversation_history: chatbotMessages, // Send the current conversation history
+          conversation_history: [...chatbotMessages, userMessage],
         }),
       });
-  
+
       if (!response.ok) {
         throw new Error("Failed to send message to chatbot");
       }
-  
+
       const data = await response.json();
-      setChatbotMessages(data.conversation_history); // Update the conversation history with the backend's response
+      setChatbotMessages(data.conversation_history);
     } catch (error) {
       console.error("Error sending message to chatbot:", error);
+      // Add error message to chat
+      const errorMessage: ChatbotMessage = {
+        role: "assistant",
+        content: "Sorry, I encountered an error. Please try again.",
+        timestamp: new Date().toLocaleTimeString(),
+      };
+      setChatbotMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsChatbotLoading(false);
     }
@@ -139,9 +166,11 @@ const QuestionsPage: React.FC = () => {
     const newChatbotOpenState = !isChatbotOpen;
     setIsChatbotOpen(newChatbotOpenState);
 
-    if (newChatbotOpenState) {
+    if (newChatbotOpenState && chatbotMessages.length === 0) {
       const currentQuestion = questions[currentQuestionIndex];
-      const questionContext = `I need help with this question: ${currentQuestion.header}. ${currentQuestion.subtext} Here are the answer choices: ${currentQuestion.options.map(option => option.option_text).join(', ')}`;
+      const questionContext = `I need help with this question: ${currentQuestion.header}. ${currentQuestion.subtext} Here are the answer choices: ${currentQuestion.options
+        .map((option) => option.option_text)
+        .join(", ")}`;
 
       setIsChatbotLoading(true);
       try {
@@ -167,14 +196,18 @@ const QuestionsPage: React.FC = () => {
   };
 
   if (isLoading) {
-    return <div>Loading questions...</div>;
+    return <div className="flex justify-center items-center h-screen">Loading questions...</div>;
+  }
+
+  if (!questions.length) {
+    return <div className="flex justify-center items-center h-screen">No questions available for this topic.</div>;
   }
 
   const currentQuestion = questions[currentQuestionIndex];
 
   return (
-    <div className="flex">
-      {/* Sidebar */}
+    <div className="flex h-screen overflow-hidden">
+      {/* Left Sidebar */}
       <aside className="w-1/5 min-h-screen bg-gradient-to-b from-blue-500 to-purple-500 text-white p-5">
         <h2 className="text-xl font-bold mb-8">Akin Learning</h2>
         <nav className="space-y-4">
@@ -191,19 +224,18 @@ const QuestionsPage: React.FC = () => {
       {/* Main Content */}
       <main className="flex-1 p-10">
         <h1 className="text-3xl font-bold text-center mb-6">Questions</h1>
-        <h2 className="text-2xl font-semibold text-center mb-8">
-          <span className="border-b-2 border-black">Python</span>
-        </h2>
 
         {/* Navigation Buttons */}
-        <div className="flex justify-center mb-6">
+        <div className="flex justify-center mb-6 flex-wrap gap-2">
           {questions.map((_, index) => (
             <button
               key={index}
               onClick={() => handleQuestionChange(index)}
-              className={`mx-2 px-4 py-2 rounded ${
+              className={`px-4 py-2 rounded ${
                 currentQuestionIndex === index
                   ? "bg-blue-500 text-white"
+                  : questions[index].answered_correctly
+                  ? "bg-green-500 text-white"
                   : "bg-gray-200 text-black"
               }`}
             >
@@ -237,7 +269,7 @@ const QuestionsPage: React.FC = () => {
             className={`mt-4 px-4 py-2 rounded ${
               currentQuestion.answered_correctly
                 ? "bg-gray-300 cursor-not-allowed"
-                : "bg-blue-500 text-white"
+                : "bg-blue-500 hover:bg-blue-600 text-white"
             }`}
             disabled={currentQuestion.answered_correctly}
           >
@@ -251,65 +283,91 @@ const QuestionsPage: React.FC = () => {
         </div>
       </main>
 
-      {/* Chatbot Side Panel */}
-      <div
-        className={`fixed top-0 right-0 h-full w-1/4 bg-white shadow-lg transform transition-transform duration-300 ${
-          isChatbotOpen ? "translate-x-0" : "translate-x-full"
-        }`}
-      >
-        <div className="p-4 h-full flex flex-col">
-          <h2 className="text-lg font-bold mb-4">AI Chatbot</h2>
-          <div className="mb-4 flex-grow overflow-y-auto border p-2 rounded">
-            {chatbotMessages.map((msg, index) => (
-              <div key={index} className={`chatbot-message ${msg.role}`}>
-                <div>{msg.content}</div>
-                <div className="text-xs text-gray-500 text-right">{msg.timestamp}</div>
-              </div>
-            ))}
-            {isChatbotLoading && <div className="text-center">Loading...</div>}
-          </div>
-          <div className="flex">
-            <input
-              type="text"
-              placeholder="Type your question..."
-              className="flex-1 p-2 border rounded-l"
-              onKeyPress={(e) => {
-                if (e.key === "Enter") {
-                  handleChatbotMessageSubmit(e.currentTarget.value);
-                  e.currentTarget.value = "";
-                }
-              }}
-            />
+      {/* Chatbot Sidebar */}
+      {isChatbotOpen && (
+        <div className="fixed right-0 top-0 h-full w-96 bg-white shadow-lg border-l z-10 flex flex-col">
+          <div className="p-4 border-b flex justify-between items-center bg-blue-500 text-white">
+            <h3 className="text-lg font-bold">Learning Assistant</h3>
             <button
-              onClick={() => {
-                const input = document.querySelector("input[type='text']") as HTMLInputElement;
-                handleChatbotMessageSubmit(input.value);
-                input.value = "";
-              }}
-              className="bg-blue-500 text-white p-2 rounded-r"
+              onClick={() => setIsChatbotOpen(false)}
+              className="hover:text-gray-200"
             >
-              Send
+              ✕
             </button>
           </div>
+          
+          {/* Chat Messages */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            {chatbotMessages.map((message, index) => (
+              <div
+                key={index}
+                className={`flex ${
+                  message.role === "user" ? "justify-end" : "justify-start"
+                }`}
+              >
+                <div
+                  className={`max-w-xs p-3 rounded-lg ${
+                    message.role === "user"
+                      ? "bg-blue-500 text-white"
+                      : "bg-gray-200 text-gray-800"
+                  }`}
+                >
+                  <p>{message.content}</p>
+                  <p className="text-xs opacity-70 mt-1">
+                    {message.timestamp}
+                  </p>
+                </div>
+              </div>
+            ))}
+            {isChatbotLoading && (
+              <div className="flex justify-start">
+                <div className="bg-gray-200 text-gray-800 p-3 rounded-lg">
+                  <p>Thinking...</p>
+                </div>
+              </div>
+            )}
+          </div>
+          
+          {/* Message Input */}
+          <div className="p-4 border-t">
+            <form 
+              onSubmit={(e) => {
+                e.preventDefault();
+                const input = e.currentTarget.querySelector('input');
+                if (input && input.value.trim()) {
+                  handleChatbotMessageSubmit(input.value.trim());
+                  input.value = '';
+                }
+              }}
+              className="flex gap-2"
+            >
+              <input
+                type="text"
+                placeholder="Type your question..."
+                className="flex-1 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={isChatbotLoading}
+              />
+              <button
+                type="submit"
+                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-gray-400"
+                disabled={isChatbotLoading}
+              >
+                Send
+              </button>
+            </form>
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* User Info */}
-      <div className="absolute top-5 right-5 flex items-center space-x-3">
-        <div className="bg-gray-200 rounded-full w-10 h-10 flex items-center justify-center">
-          👤
-        </div>
-        <div>
-          <p className="font-semibold">User123</p>
-          <p className="text-xs text-gray-500">ID: 1234567</p>
-        </div>
-        <button
-          onClick={handleChatbotButtonClick}
-          className="bg-blue-500 text-white px-4 py-2 rounded"
-        >
-          Chatbot
-        </button>
-      </div>
+      {/* Chatbot Toggle Button */}
+      <button
+        onClick={handleChatbotButtonClick}
+        className={`fixed right-4 top-4 px-4 py-2 rounded shadow-lg z-20 ${
+          isChatbotOpen ? 'bg-gray-500 hover:bg-gray-600' : 'bg-purple-500 hover:bg-purple-600'
+        } text-white transition-colors`}
+      >
+        {isChatbotOpen ? "Close Assistant" : "Ask Chatbot for Help"}
+      </button>
     </div>
   );
 };

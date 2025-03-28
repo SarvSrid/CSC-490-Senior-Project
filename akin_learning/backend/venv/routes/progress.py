@@ -12,7 +12,7 @@ import os
 app = Flask(__name__)
 
 # Load database URL from environment variable
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:sharksnow@localhost:5432/akin_learning")
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 # Initialize extensions
 jwt = JWTManager(app)  # Keep JWTManager for future use

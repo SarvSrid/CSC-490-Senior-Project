@@ -1,15 +1,16 @@
 import openai
 import logging
-from config import Config
+# from config import Config
 from flask_cors import CORS
 from flask import Flask, request, jsonify
 from datetime import datetime
+import os
 
 # Initialize Flask app
 app = Flask(__name__)
 
 # Set OpenAI API key
-openai.api_key = Config.OPENAI_API_KEY
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Initialize extensions
 CORS(app)
