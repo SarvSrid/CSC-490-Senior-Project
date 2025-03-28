@@ -160,39 +160,25 @@ function SettingsPage() {
     >
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 h-full ${
-          isSidebarCollapsed ? "w-16" : "w-64"
-        } transition-all duration-300 z-20`}
+        className={`fixed top-0 left-0 h-full ${isSidebarCollapsed ? "w-16" : "w-64"} transition-all duration-300 z-20`}
         style={{ background: "var(--sidebar-bg)", color: "var(--sidebar-color)" }}
       >
-        <div className="flex items-center p-4">
-          <button
-            onClick={toggleSidebar}
-            className="p-2 hover:bg-white/10 rounded-full transition-colors"
-          >
-            <Menu className="w-6 h-6" fill="white" />
-          </button>
-          {!isSidebarCollapsed && (
-            <h1 className="ml-4 font-bold text-white">Akin Learning</h1>
-          )}
-        </div>
-        <nav className="mt-2">
+        <nav className="mt-20">
           {menuItems.map((item, index) => {
             const isActive = pathname.startsWith(item.path);
             return (
               <Link key={index} href={item.path}>
                 <div
-  className={`flex items-center m-2 ${isSidebarCollapsed ? "px-4" : "px-6"} py-3 rounded-lg transition-colors ${
-    isActive ? "bg-white/20" : "hover:bg-white/10"
-  }`}
->
-  <item.icon
-    className={`w-6 h-6 ${isSidebarCollapsed ? "" : "mr-4"}`}
-    fill={isActive ? "currentColor" : "none"}
-  />
-  {!isSidebarCollapsed && <span className="text-sm">{item.label}</span>}
-</div>
-
+                  className={`flex items-center m-2 ${isSidebarCollapsed ? "px-4" : "px-6"} py-3 rounded-lg transition-colors ${
+                    isActive ? "bg-white/20" : "hover:bg-white/10"
+                  }`}
+                >
+                  <item.icon
+                    className={`w-6 h-6 ${isSidebarCollapsed ? "" : "mr-4"}`}
+                    fill={isActive ? "currentColor" : "none"}
+                  />
+                  {!isSidebarCollapsed && <span className="text-sm">{item.label}</span>}
+                </div>
               </Link>
             );
           })}
@@ -202,9 +188,7 @@ function SettingsPage() {
               return (
                 <Link key={index} href={item.path}>
                   <div
-                    className={`flex items-center ${
-                      isSidebarCollapsed ? "px-4" : "px-6"
-                    } py-3 transition-colors ${
+                    className={`flex items-center m-2 ${isSidebarCollapsed ? "px-4" : "px-6"} py-3 rounded-lg transition-colors ${
                       isActive ? "bg-white/20" : "hover:bg-white/10"
                     }`}
                   >
