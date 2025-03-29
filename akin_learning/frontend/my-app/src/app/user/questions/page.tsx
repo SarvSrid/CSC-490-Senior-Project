@@ -8,6 +8,8 @@ interface Option {
   id: number;
   option_text: string;
   is_correct: boolean;
+  parsedLabel?: string;
+  parsedCode?: string;
 }
 
 interface Question {
@@ -16,6 +18,10 @@ interface Question {
   subtext: string;
   options: Option[];
   answered_correctly: boolean;
+  parsedHeader?: {
+    text: string;
+    code: string;
+  };
 }
 
 interface ChatbotMessage {
@@ -37,6 +43,35 @@ const QuestionsPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isChatbotLoading, setIsChatbotLoading] = useState(false);
 
+  const parseQuestionHeader = (header: string) => {
+    const unescapedHeader = header.replace(/\\n/g, '\n');
+    const firstNewline = unescapedHeader.indexOf('\n');
+    
+    if (firstNewline === -1) {
+      return {
+        text: unescapedHeader,
+        code: ''
+      };
+    }
+
+    return {
+      text: unescapedHeader.substring(0, firstNewline),
+      code: unescapedHeader.substring(firstNewline + 1)
+    };
+  };
+
+  const parseOptionText = (optionText: string) => {
+    const unescapedText = optionText.replace(/\\n/g, '\n');
+    const parts = unescapedText.split('\n');
+    const label = parts[0];
+    const code = parts.slice(1).join('\n');
+
+    return {
+      label,
+      code
+    };
+  };
+
   useEffect(() => {
     const fetchQuestions = async () => {
       if (!topicId) {
@@ -53,7 +88,26 @@ const QuestionsPage: React.FC = () => {
           throw new Error("Failed to fetch questions");
         }
         const data = await response.json();
-        setQuestions(data);
+        
+        const parsedQuestions = data.map((question: Question) => {
+          const parsedHeader = parseQuestionHeader(question.header);
+          const parsedOptions = question.options.map(option => {
+            const parsed = parseOptionText(option.option_text);
+            return {
+              ...option,
+              parsedLabel: parsed.label,
+              parsedCode: parsed.code
+            };
+          });
+
+          return {
+            ...question,
+            parsedHeader,
+            options: parsedOptions
+          };
+        });
+
+        setQuestions(parsedQuestions);
       } catch (error) {
         console.error("Error fetching questions:", error);
       } finally {
@@ -102,7 +156,6 @@ const QuestionsPage: React.FC = () => {
       const result = await response.json();
       setIsCorrect(result.is_correct);
 
-      // Update the question's answered_correctly status
       setQuestions((prevQuestions) =>
         prevQuestions.map((question) =>
           question.id === currentQuestion.id
@@ -120,7 +173,6 @@ const QuestionsPage: React.FC = () => {
 
     setIsChatbotLoading(true);
 
-    // Add user message immediately
     const userMessage: ChatbotMessage = {
       role: "user",
       content: message,
@@ -130,7 +182,6 @@ const QuestionsPage: React.FC = () => {
     setChatbotMessages((prev) => [...prev, userMessage]);
 
     try {
-      // Send the message to the backend
       const response = await fetch("http://localhost:5004/api/chatbot", {
         method: "POST",
         headers: {
@@ -150,7 +201,6 @@ const QuestionsPage: React.FC = () => {
       setChatbotMessages(data.conversation_history);
     } catch (error) {
       console.error("Error sending message to chatbot:", error);
-      // Add error message to chat
       const errorMessage: ChatbotMessage = {
         role: "assistant",
         content: "Sorry, I encountered an error. Please try again.",
@@ -204,6 +254,7 @@ const QuestionsPage: React.FC = () => {
   }
 
   const currentQuestion = questions[currentQuestionIndex];
+  const parsedHeader = parseQuestionHeader(currentQuestion.header);
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -246,8 +297,25 @@ const QuestionsPage: React.FC = () => {
 
         {/* Current Question */}
         <div className="border p-5 rounded-lg shadow-md">
-          <h3 className="text-xl font-bold mb-2">{currentQuestion.header}</h3>
+          {/* Render question text */}
+          <h3 className="text-xl font-bold mb-2">{parsedHeader.text}</h3>
+          
           <p className="text-gray-600 mb-4">{currentQuestion.subtext}</p>
+          
+          {/* Render code block if exists */}
+          {parsedHeader.code && (
+            <div className="mb-4">
+              <pre className="bg-gray-100 p-4 rounded-md overflow-x-auto text-sm font-mono">
+                {parsedHeader.code.split('\n').map((line, i) => (
+                  <div key={i} className="whitespace-pre">
+                    {line}
+                  </div>
+                ))}
+              </pre>
+            </div>
+          )}
+
+          {/* Options */}
           <div className="space-y-2">
             {currentQuestion.options.map((option) => (
               <label key={option.id} className="block">
@@ -264,6 +332,7 @@ const QuestionsPage: React.FC = () => {
               </label>
             ))}
           </div>
+          
           <button
             onClick={handleAnswerSubmit}
             className={`mt-4 px-4 py-2 rounded ${
@@ -275,6 +344,7 @@ const QuestionsPage: React.FC = () => {
           >
             Submit Answer
           </button>
+          
           {isCorrect !== null && (
             <p className={`mt-2 ${isCorrect ? "text-green-500" : "text-red-500"}`}>
               {isCorrect ? "Correct!" : "Incorrect!"}
@@ -296,7 +366,6 @@ const QuestionsPage: React.FC = () => {
             </button>
           </div>
           
-          {/* Chat Messages */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {chatbotMessages.map((message, index) => (
               <div
@@ -328,7 +397,6 @@ const QuestionsPage: React.FC = () => {
             )}
           </div>
           
-          {/* Message Input */}
           <div className="p-4 border-t">
             <form 
               onSubmit={(e) => {

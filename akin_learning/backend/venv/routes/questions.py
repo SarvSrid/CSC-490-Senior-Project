@@ -56,15 +56,23 @@ def get_questions():
         response = []
         for main_question in main_questions:
             # Fetch options for the main question
+            # Normalize all line endings and ensure proper escaping
+            # header = main_question['header']
+            # header = header.replace('\r\n', '\n')  # Convert Windows line endings
+            # header = header.replace('\r', '\n')    # Convert old Mac line endings
+
+            header = main_question['header'].replace('\n', '\\n')
+
             cursor.execute("""
                 SELECT * FROM question_option
                 WHERE question_id = %s
             """, (main_question['id'],))
             main_options = cursor.fetchall()
 
+            #                'header': main_question['header'].replace('\r\n', '\n'),
             response.append({
                 'id': main_question['id'],
-                'header': main_question['header'],
+                'header': header,
                 'subtext': main_question['subtext'],
                 'topic_id': main_question['topic_id'],
                 'difficulty_level': main_question['difficulty_level'],
