@@ -69,6 +69,7 @@ body {
 }
 
 /* Custom text styles (using classes instead of custom tags) */
+/* Custom text styles (using classes instead of custom tags) */
 h1 {
   display: block;
   font-size: 50px;
@@ -81,6 +82,18 @@ h1 {
   /* Dark text */
 }
 
+/* Custom text styles (using classes instead of custom tags) */
+h1 {
+  display: block;
+  font-size: 50px;
+  /* Adjust as needed */
+  font-weight: lighter;
+  /* or normal, your choice */
+  margin-bottom: 1rem;
+  color: #ffffff;
+  text-align: center;
+  /* Dark text */
+}
 
 .p2 {
   font-size: 1rem;
@@ -149,6 +162,20 @@ h1 {
   z-index: 5;
 }
 
+/* When right-panel-active is set, hide the signâ€‘in container */
+.container.right-panel-active .sign-in-container {
+  transform: translateX(100%);
+  opacity: 0;
+  z-index: 1;
+}
+
+/* When right-panel-active is set, show the signâ€‘up container */
+.container.right-panel-active .sign-up-container {
+  transform: translateX(100%);
+  opacity: 1;
+  z-index: 5;
+}
+
 /* FORM STYLING */
 .sign-in-container form,
 .sign-up-container form {
@@ -160,7 +187,7 @@ h1 {
   justify-content: center;
 }
 
-/* Rounded corners on the Sign Up form’s right side */
+/* Rounded corners on the Sign Up formâ€™s right side */
 .sign-up-container form {
   border-top-right-radius: 80px;
   border-bottom-right-radius: 80px;
@@ -889,32 +916,4 @@ d1 {
 
 .subject-item:hover {
   background-color: var(--subject-item-hover-bg);
-}
-
-.p-8{
-  padding: 0rem;
-}
-
-/* Add this CSS to your global styles or a CSS module */
-.chatbot-message {
-  display: inline-block;
-  padding: 10px;
-  border-radius: 10px;
-  margin-bottom: 10px;
-  max-width: 80%;
-  word-wrap: break-word;
-}
-
-.chatbot-message.user {
-  background-color: #007bff;
-  color: white;
-  text-align: right;
-  align-self: flex-end;
-}
-
-.chatbot-message.assistant {
-  background-color: #f1f1f1;
-  color: black;
-  text-align: left;
-  align-self: flex-start;
 }

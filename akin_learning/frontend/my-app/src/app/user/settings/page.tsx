@@ -2,7 +2,6 @@
 import { useRouter, usePathname } from "next/navigation";
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import Cookies from "js-cookie";
 import {
   Home,
   BookOpen,
@@ -14,54 +13,29 @@ import {
   User,
   ChevronDown,
   Menu,
+  Key,
+  Globe,
 } from "lucide-react";
 
-interface ProgressData {
-  subject_id: number;
-  subject: string;
-  average_progress: number;
-}
-
-function Dashboard() {
+function SettingsPage() {
   const router = useRouter();
   const pathname = usePathname() ?? "";
-  const [user, setUser] = useState<{ id: string; name: string; email: string } | null>(null);
-  const [progress, setProgress] = useState<ProgressData[]>([]);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [isSubjectsPanelOpen, setSubjectsPanelOpen] = useState(false);
 
-  // Create a ref for the profile button
+  // Declare the profile button ref
   const profileButtonRef = useRef<HTMLButtonElement | null>(null);
 
-  useEffect(() => {
-    const userData = Cookies.get("user");
-    if (!userData) {
-      router.push("/auth/signin/signin1");
-    } else {
-      const parsedUser = JSON.parse(userData);
-      setUser(parsedUser);
-      fetch(`http://localhost:5001/api/progress?user_id=${parsedUser.id}`)
-        .then((response) => response.json())
-        .then((data) => {
-          console.log("Fetched progress data:", data);
-          setProgress(data);
-        })
-        .catch((error) => console.error("Error fetching progress:", error));
-    }
-  }, [router]);
-  
+  // Toggle functions
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode);
     document.body.classList.toggle("dark-mode");
   };
-
   const toggleProfile = () => setIsProfileOpen(!isProfileOpen);
   const toggleSidebar = () => setSidebarCollapsed(!isSidebarCollapsed);
-  const toggleSubjectsPanel = () => setSubjectsPanelOpen(!isSubjectsPanelOpen);
 
-  // Define your sidebar menu items
+  // Sidebar navigation items
   const menuItems = [
     { icon: Home, label: "Home", path: "/user/dashboard" },
     { icon: BookOpen, label: "Subjects", path: "/user/topics" },
@@ -72,7 +46,7 @@ function Dashboard() {
     { icon: LogOut, label: "Log Out", path: "/auth/signin/signin1" },
   ];
 
-  // ProfileDropdown inner component
+  // Update the ref type in ProfileDropdownProps to allow null.
   interface ProfileDropdownProps {
     isProfileOpen: boolean;
     isDarkMode: boolean;
@@ -80,7 +54,7 @@ function Dashboard() {
     closeProfile: () => void;
     buttonRef: React.RefObject<HTMLButtonElement | null>;
   }
-
+  
   const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
     isProfileOpen,
     isDarkMode,
@@ -102,7 +76,12 @@ function Dashboard() {
         }
       };
 
-      document.addEventListener("mousedown", handleClickOutside);
+      if (isProfileOpen) {
+        document.addEventListener("mousedown", handleClickOutside);
+      } else {
+        document.removeEventListener("mousedown", handleClickOutside);
+      }
+
       return () => {
         document.removeEventListener("mousedown", handleClickOutside);
       };
@@ -141,15 +120,14 @@ function Dashboard() {
             <User className="inline w-5 h-5 mr-3" />
             Edit Profile
           </button>
-          <Link
-            href="/user/settings"
+          <button
             className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
               isDarkMode ? "text-white hover:bg-gray-700" : "hover:bg-gray-100"
             }`}
           >
             <Settings className="inline w-5 h-5 mr-3" />
             Settings
-          </Link>
+          </button>
           <button
             onClick={() => {
               toggleTheme();
@@ -175,7 +153,11 @@ function Dashboard() {
   };
 
   return (
-    <div className={`min-h-screen ${isDarkMode ? "bg-gray-800 text-white" : "bg-gray-100 text-black"}`}>
+    <div
+      className={`min-h-screen ${
+        isDarkMode ? "bg-gray-800 text-white" : "bg-gray-100 text-black"
+      }`}
+    >
       {/* Sidebar */}
       <aside
         className={`fixed top-0 left-0 h-full ${isSidebarCollapsed ? "w-16" : "w-64"} transition-all duration-300 z-20`}
@@ -225,13 +207,15 @@ function Dashboard() {
 
       {/* Header */}
       <header
-        className={`fixed top-0 left-0 right-0 ${isDarkMode ? "bg-gray-800" : "bg-gray-100"} shadow-md z-30 flex items-center justify-between`}
+        className={`fixed top-0 left-0 right-0 ${
+          isDarkMode ? "bg-gray-800" : "bg-gray-100"
+        } shadow-md z-30 flex items-center justify-between`}
         style={{ padding: "8px 24px 8px 16px" }}
       >
         <div className="flex items-center space-x-2">
           <button
-            onClick={() => setSidebarCollapsed(!isSidebarCollapsed)}
-            className="p-2 hover:bg-gray-200 dark:hover:bg-gray-300 rounded-full transition-colors"
+            onClick={toggleSidebar}
+            className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors"
           >
             <Menu className="w-6 h-6" />
           </button>
@@ -240,7 +224,7 @@ function Dashboard() {
         <div>
           <button
             ref={profileButtonRef}
-            onClick={() => setIsProfileOpen(!isProfileOpen)}
+            onClick={toggleProfile}
             className={`flex items-center px-4 py-2 rounded-full ${
               isDarkMode ? "bg-gray-700 hover:bg-gray-600" : "bg-gray-100 hover:bg-gray-200"
             } transition-colors`}
@@ -257,111 +241,64 @@ function Dashboard() {
       </header>
 
       {/* Profile Dropdown */}
-      {isProfileOpen && (
-        <ProfileDropdown
-          isProfileOpen={isProfileOpen}
-          isDarkMode={isDarkMode}
-          toggleTheme={toggleTheme}
-          closeProfile={() => setIsProfileOpen(false)}
-          buttonRef={profileButtonRef}
-        />
-      )}
+      <ProfileDropdown
+        isProfileOpen={isProfileOpen}
+        isDarkMode={isDarkMode}
+        toggleTheme={toggleTheme}
+        closeProfile={() => setIsProfileOpen(false)}
+        buttonRef={profileButtonRef}
+      />
 
-      {/* Main Content – Progress Dashboard */}
-      <div className={`${isSidebarCollapsed ? "ml-16" : "ml-64"} transition-all duration-300 pt-20 p-8`}>
-        <div className="w-full mb-8 px-1">
-          <h2 className={`text-3xl font-light text-left mb-2 ${isDarkMode ? "text-white" : "text-gray-600"}`}>
-            Progress
-          </h2>
-          <hr className={`w-full border-t ${isDarkMode ? "border-gray-600" : "border-gray-300"}`} />
+     {/* Main Content */}
+<div className={`${isSidebarCollapsed ? "ml-16" : "ml-64"} transition-all duration-300 pt-20 p-8`}>
+  {/* Header Section */}
+  <div className="w-full mb-8 px-1">
+    <h2 className={`text-3xl font-light text-left mb-2 ${isDarkMode ? "text-white" : "text-gray-600"}`}>
+      Settings
+    </h2>
+    <hr className={`w-full border-t ${isDarkMode ? "border-gray-600" : "border-gray-300"}`} />
+  </div>
+  {/* Big Card Container for Settings Options */}
+  <div
+    className={`max-w-2xl mx-auto p-8 rounded-xl transition-colors ${
+      isDarkMode
+        ? "bg-transparent border border-gray-600 text-white"
+        : "bg-transparent border border-gray-300 text-black"
+    }`}
+  >
+    <div className="space-y-6">
+      <Link href="/user/settings/account">
+        <div className="flex items-center justify-between p-6 rounded-lg transition-colors cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-300">
+          <div className="flex items-center space-x-4">
+            <User className="w-8 h-8" />
+            <span className="font-medium text-lg">Account</span>
+          </div>
         </div>
-        {/* Progress Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {progress.map((item, index) => {
-            const getProgressColor = (percentage: number) => {
-              if (percentage === 100) {
-                return "url(#gradient)";
-              } else if (percentage < 33) {
-                return "#FF0000";
-              } else if (percentage < 66) {
-                return "#FFFF00";
-              } else {
-                return "#00FF00";
-              }
-            };
-
-            return (
-              <div
-                key={index}
-                className={`p-6 rounded-2xl transition-colors duration-300 shadow-none border ${
-                  isDarkMode ? "border-gray-600" : "border-gray-300"
-                } bg-transparent`}
-              >
-                {/* Subject Name (Top Left) */}
-                <div className="flex justify-start">
-                  <h3 className={`text-lg font-medium ${isDarkMode ? "text-white" : "text-gray-800"}`}>
-                    {item.subject}
-                  </h3>
-                </div>
-                {/* Progress Circle */}
-                <div className="relative w-32 h-32 mx-auto my-4">
-                  <svg className="w-full h-full" viewBox="0 0 36 36">
-                    <path
-                      d="M18 2.0845
-                         a 15.9155 15.9155 0 0 1 0 31.831
-                         a 15.9155 15.9155 0 0 1 0 -31.831"
-                      fill="none"
-                      stroke={isDarkMode ? "#374151" : "#E5E7EB"}
-                      strokeWidth="3"
-                    />
-                    <path
-                      d="M18 2.0845
-                         a 15.9155 15.9155 0 0 1 0 31.831
-                         a 15.9155 15.9155 0 0 1 0 -31.831"
-                      fill="none"
-                      stroke={getProgressColor(item.average_progress)}
-                      strokeWidth="3"
-                      strokeDasharray={`${item.average_progress}, 100`}
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className={`text-2xl font-medium ${isDarkMode ? "text-white" : "text-gray-800"}`}>
-                      {Math.round(item.average_progress)}%
-                    </span>
-                  </div>
-                </div>
-                {/* Continue Button (Bottom Left) */}
-                <div className="flex justify-start">
-                  <Link href="/user/topics">
-                    <button
-                      className={`px-4 py-1 rounded-full border transition-colors ${
-                        isDarkMode
-                          ? "border-gray-600 text-white hover:bg-gray-600"
-                          : "border-gray-300 text-gray-800 hover:bg-gray-300"
-                      }`}
-                    >
-                      Continue
-                    </button>
-                  </Link>
-                </div>
-              </div>
-            );
-          })}
+      </Link>
+      <Link href="/user/settings/security">
+        <div className="flex items-center justify-between p-6 rounded-lg transition-colors cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-300">
+          <div className="flex items-center space-x-4">
+            <Key className="w-8 h-8" />
+            <span className="font-medium text-lg">Security</span>
+          </div>
         </div>
-      </div>
+      </Link>
+      <Link href="/user/settings/language">
+        <div className="flex items-center justify-between p-6 rounded-lg transition-colors cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-300">
+          <div className="flex items-center space-x-4">
+            <Globe className="w-8 h-8" />
+            <span className="font-medium text-lg">Language</span>
+          </div>
+        </div>
+      </Link>
+    </div>
+  </div>
+</div>
 
-      {/* SVG Gradient Definition */}
-      <svg width="0" height="0">
-        <defs>
-          <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#3B82F6" />
-            <stop offset="50%" stopColor="#8B5CF6" />
-            <stop offset="100%" stopColor="#EC4899" />
-          </linearGradient>
-        </defs>
-      </svg>
+
+
     </div>
   );
 }
 
-export default Dashboard;
+export default SettingsPage;

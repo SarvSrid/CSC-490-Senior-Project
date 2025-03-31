@@ -1,13 +1,136 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import {
+  Home,
+  BookOpen,
+  Cpu,
+  Settings,
+  LogOut,
+  Moon,
+  Sun,
+  User,
+  ChevronDown,
+  Menu,
+  Globe,
+} from "lucide-react";
 
+// ----------------------
+// ProfileDropdown Component
+// ----------------------
+interface ProfileDropdownProps {
+  isProfileOpen: boolean;
+  isDarkMode: boolean;
+  toggleTheme: () => void;
+  closeProfile: () => void;
+  buttonRef: React.RefObject<HTMLButtonElement | null>;
+}
+
+const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
+  isProfileOpen,
+  isDarkMode,
+  toggleTheme,
+  closeProfile,
+  buttonRef,
+}) => {
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node) &&
+        buttonRef.current &&
+        !buttonRef.current.contains(event.target as Node)
+      ) {
+        closeProfile();
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isProfileOpen, closeProfile, buttonRef]);
+
+  if (!isProfileOpen) return null;
+
+  return (
+    <div
+      ref={dropdownRef}
+      className={`fixed right-4 mt-16 w-64 ${
+        isDarkMode ? "bg-gray-800 text-white" : "bg-gray-100 text-black"
+      } rounded-xl shadow-lg border ${
+        isDarkMode ? "border-gray-700" : "border-gray-200"
+      } z-50`}
+    >
+      <div className="p-4 border-b border-gray-200">
+        <div className="flex items-center">
+          <img
+            src="https://via.placeholder.com/60"
+            alt="Avatar"
+            className="w-12 h-12 rounded-full"
+          />
+          <div className="ml-3">
+            <h3 className="font-medium">User123</h3>
+            <p className="text-sm text-gray-500">ID: 1234567</p>
+          </div>
+        </div>
+      </div>
+      <div className="p-2">
+        <button
+          className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
+            isDarkMode ? "text-white hover:bg-gray-700" : "hover:bg-gray-100"
+          }`}
+        >
+          <User className="inline w-5 h-5 mr-3" />
+          Edit Profile
+        </button>
+        <Link
+          href="/user/settings"
+          className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
+            isDarkMode ? "text-white hover:bg-gray-700" : "hover:bg-gray-100"
+          }`}
+        >
+          <Settings className="inline w-5 h-5 mr-3" />
+          Settings
+        </Link>
+        <button
+          onClick={() => {
+            toggleTheme();
+            closeProfile();
+          }}
+          className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
+            isDarkMode ? "text-white hover:bg-gray-700" : "hover:bg-gray-100"
+          }`}
+        >
+          {isDarkMode ? (
+            <>
+              <Sun className="inline w-5 h-5 mr-3" /> Light Mode
+            </>
+          ) : (
+            <>
+              <Moon className="inline w-5 h-5 mr-3" /> Dark Mode
+            </>
+          )}
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// ----------------------
+// Difficulty Labels and Topic Interface
+// ----------------------
 interface Topic {
   id: number;
   name: string;
   difficulty_level: number;
+  progress: {
+    percentage: number;
+    active_questions: number;
+    completed_questions: number;
+  };
 }
 
 const difficultyLabels: { [key: number]: string } = {
@@ -16,12 +139,22 @@ const difficultyLabels: { [key: number]: string } = {
   3: "Advanced",
 };
 
-const TopicsPage = () => {
+// ----------------------
+// Main SubjectsPage Component (Merged)
+// ----------------------
+const SubjectsPage: React.FC = () => {
+  // Navigation and theme states
+  const router = useRouter();
+  const pathname = usePathname() ?? "";
   const searchParams = useSearchParams();
   const subject_id = searchParams ? searchParams.get("subject_id") : null;
 
-  console.log("Subject ID:", subject_id); // Debugging
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const profileButtonRef = useRef<HTMLButtonElement | null>(null);
 
+  // Topics states (fetched from API)
   const [topics, setTopics] = useState<Topic[]>([]);
   const [error, setError] = useState<string | null>(null);
 
@@ -38,7 +171,6 @@ const TopicsPage = () => {
           if (!Array.isArray(data)) {
             throw new Error("API response is not an array");
           }
-          console.log("Fetched topics:", data);
           setTopics(data);
         })
         .catch((error) => {
@@ -48,69 +180,200 @@ const TopicsPage = () => {
     }
   }, [subject_id]);
 
-  if (!subject_id) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <p className="text-red-500">Error: Subject ID is missing or invalid.</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <p className="text-red-500">Error: {error}</p>
-      </div>
-    );
-  }
+  // Toggle functions
+  const toggleTheme = () => {
+    setIsDarkMode(!isDarkMode);
+    document.body.classList.toggle("dark-mode");
+  };
+  const toggleProfile = () => setIsProfileOpen(!isProfileOpen);
+  const toggleSidebar = () => setSidebarCollapsed(!isSidebarCollapsed);
 
   return (
-    <div className="flex">
+    <div
+      className={`min-h-screen ${
+        isDarkMode ? "bg-gray-800 text-white" : "bg-gray-100 text-black"
+      }`}
+    >
       {/* Sidebar */}
-      <aside className="w-1/5 min-h-screen bg-gradient-to-b from-blue-500 to-purple-500 text-white p-5">
-        <h2 className="text-xl font-bold mb-8">Akin Learning</h2>
-        <nav className="space-y-4">
-          <Link href="/user/dashboard">
-            <button className="block text-left">🏠 Home</button>
-          </Link>
-          {/* <Link href="/user/topics">
-            <button className="block text-left font-semibold">📖 Subjects</button>
-          </Link> */}
-          <button className="block text-left">🤖 AI Tutor</button>
-          <button className="block text-left">⚙️ Settings</button>
+      <aside
+        className={`fixed top-0 left-0 h-full ${
+          isSidebarCollapsed ? "w-16" : "w-64"
+        } transition-all duration-300 z-20`}
+        style={{ background: "var(--sidebar-bg)", color: "var(--sidebar-color)" }}
+      >
+        <nav className="mt-20">
+          {[
+            { icon: Home, label: "Home", path: "/user/dashboard" },
+            { icon: BookOpen, label: "Subjects", path: "/user/topics" },
+            { icon: Cpu, label: "AI Tutor", path: "/user/ai-tutor" },
+            { icon: Settings, label: "Settings", path: "/user/settings" },
+          ].map((item, index) => {
+            const isActive = pathname.startsWith(item.path);
+            return (
+              <Link key={index} href={item.path}>
+                <div
+                  className={`flex items-center m-2 ${
+                    isSidebarCollapsed ? "px-4" : "px-6"
+                  } py-3 rounded-lg transition-colors ${
+                    isActive ? "bg-white/20" : "hover:bg-white/10"
+                  }`}
+                >
+                  <item.icon
+                    className={`w-6 h-6 ${isSidebarCollapsed ? "" : "mr-4"}`}
+                    fill={isActive ? "currentColor" : "none"}
+                  />
+                  {!isSidebarCollapsed && (
+                    <span className="text-sm">{item.label}</span>
+                  )}
+                </div>
+              </Link>
+            );
+          })}
+          <div className="absolute bottom-0 left-0 right-0 border-t border-white/10">
+            {[
+              { icon: LogOut, label: "Log Out", path: "/auth/signin/signin1" },
+            ].map((item, index) => {
+              const isActive = pathname.startsWith(item.path);
+              return (
+                <Link key={index} href={item.path}>
+                  <div
+                    className={`flex items-center ${
+                      isSidebarCollapsed ? "px-4" : "px-6"
+                    } py-3 transition-colors ${
+                      isActive ? "bg-white/20" : "hover:bg-white/10"
+                    }`}
+                  >
+                    <item.icon
+                      className={`w-6 h-6 ${isSidebarCollapsed ? "" : "mr-4"}`}
+                      fill={isActive ? "currentColor" : "none"}
+                    />
+                    {!isSidebarCollapsed && (
+                      <span className="text-sm">{item.label}</span>
+                    )}
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
         </nav>
-        <Link href="/auth/signin/signin1">
-          <button className="absolute bottom-5 left-5">🚪 Log Out</button>
-        </Link>
       </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 p-10">
-        <h1 className="text-3xl font-bold text-center mb-6">Topics</h1>
-
-        {/* Topic List */}
-        <div className="grid grid-cols-3 gap-8">
-          {topics.map((topic) => (
-            <div key={topic.id} className="border p-5 rounded-lg shadow-md">
-              <h3 className="text-xl font-bold text-center mb-4">
-                {topic.name}
-              </h3>
-              <p className="text-center">
-                Difficulty: {difficultyLabels[topic.difficulty_level]}
-              </p>
-              <ul className="space-y-2">
-                <li className="text-gray-700">
-                  <Link href={`/user/questions?topic_id=${topic.id}`} legacyBehavior>
-                    <a className="hover:underline">• View Questions</a>
-                  </Link>
-                </li>
-              </ul>
-            </div>
-          ))}
+      {/* Header */}
+      <header
+        className={`fixed top-0 left-0 right-0 ${
+          isDarkMode ? "bg-gray-800" : "bg-gray-100"
+        } shadow-md z-30 flex items-center justify-between`}
+        style={{ padding: "8px 24px 8px 16px" }}
+      >
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={toggleSidebar}
+            className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors"
+          >
+            <Menu className="w-6 h-6" />
+          </button>
+          <span className="text-xl font-bold">Akin Learning</span>
         </div>
-      </main>
+        <div>
+          <button
+            ref={profileButtonRef}
+            onClick={toggleProfile}
+            className={`flex items-center px-4 py-2 rounded-full ${
+              isDarkMode ? "bg-gray-700 hover:bg-gray-600" : "bg-gray-100 hover:bg-gray-200"
+            } transition-colors`}
+          >
+            <img
+              src="https://via.placeholder.com/40"
+              alt="User Avatar"
+              className="w-8 h-8 rounded-full mr-2"
+            />
+            <span className="font-medium">User123</span>
+            <ChevronDown className="w-4 h-4 ml-2" />
+          </button>
+        </div>
+      </header>
+
+      {/* Profile Dropdown */}
+      {isProfileOpen && (
+        <ProfileDropdown
+          isProfileOpen={isProfileOpen}
+          isDarkMode={isDarkMode}
+          toggleTheme={toggleTheme}
+          closeProfile={() => setIsProfileOpen(false)}
+          buttonRef={profileButtonRef}
+        />
+      )}
+
+      {/* Main Content */}
+      <div
+        className={`${isSidebarCollapsed ? "ml-16" : "ml-64"} transition-all duration-300 pt-20 p-8`}
+      >
+        <div className="w-full mb-8 px-1">
+          <h2
+            className={`text-3xl font-light text-left mb-2 ${
+              isDarkMode ? "text-white" : "text-gray-600"
+            }`}
+          >
+            Subjects
+          </h2>
+          <hr
+            className={`w-full border-t ${
+              isDarkMode ? "border-gray-600" : "border-gray-300"
+            }`}
+          />
+        </div>
+        {/* Display error if subject_id is missing or API error occurred */}
+        {!subject_id ? (
+          <div className="flex justify-center items-center h-screen">
+            <p className="text-red-500">
+              Error: Subject ID is missing or invalid.
+            </p>
+          </div>
+        ) : error ? (
+          <div className="flex justify-center items-center h-screen">
+            <p className="text-red-500">Error: {error}</p>
+          </div>
+        ) : (
+          // Topics grid (from the old file)
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+            {topics.map((topic) => (
+              <div
+                key={topic.id}
+                className="border p-5 rounded-lg shadow-md hover:shadow-lg transition-shadow"
+              >
+                <h3 className="text-xl font-bold text-center mb-4">
+                  {topic.name}
+                </h3>
+                <p className="text-center mb-2">
+                  Difficulty: {difficultyLabels[topic.difficulty_level]}
+                </p>
+                {/* Progress Bar */}
+                <div className="w-full bg-gray-200 rounded-full h-2.5 mb-2">
+                  <div
+                    className="bg-blue-600 h-2.5 rounded-full"
+                    style={{ width: `${topic.progress.percentage}%` }}
+                  ></div>
+                </div>
+                {/* Progress Text */}
+                <p className="text-center text-sm text-gray-600 mb-4">
+                  {topic.progress.completed_questions} of{" "}
+                  {topic.progress.active_questions} completed (
+                  {topic.progress.percentage.toFixed(0)}%)
+                </p>
+                <div className="flex justify-center">
+                  <Link href={`/user/questions?topic_id=${topic.id}`} legacyBehavior>
+                    <a className="text-blue-600 hover:underline font-medium">
+                      View Questions
+                    </a>
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
 
-export default TopicsPage;
+export default SubjectsPage;
