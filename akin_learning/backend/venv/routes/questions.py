@@ -62,6 +62,7 @@ def get_questions():
             # header = header.replace('\r', '\n')    # Convert old Mac line endings
 
             header = main_question['header'].replace('\n', '\\n')
+            subtext = main_question['subtext'].replace('\n', '\\n')
 
             cursor.execute("""
                 SELECT * FROM question_option
@@ -70,10 +71,11 @@ def get_questions():
             main_options = cursor.fetchall()
 
             #                'header': main_question['header'].replace('\r\n', '\n'),
+            #               'subtext': main_question['subtext'],
             response.append({
                 'id': main_question['id'],
                 'header': header,
-                'subtext': main_question['subtext'],
+                'subtext': subtext,
                 'topic_id': main_question['topic_id'],
                 'difficulty_level': main_question['difficulty_level'],
                 'progress': main_question['progress'],

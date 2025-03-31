@@ -22,6 +22,10 @@ interface Question {
     text: string;
     code: string;
   };
+  parsedSubtext?: {
+    text: string;
+    code: string;
+  };
 }
 
 interface ChatbotMessage {
@@ -60,6 +64,25 @@ const QuestionsPage: React.FC = () => {
     };
   };
 
+  const parseSubtext = (subtext: string) => {
+    const unescapedSubtext = subtext.replace(/\\n/g, '\n');
+    const parts = unescapedSubtext.split('\n');
+    
+    // If there's no code block (no newlines), return just the text
+    // if (parts.length === 1) {
+    //   return {
+    //     text: unescapedSubtext,
+    //     code: ''
+    //   };
+    // }
+  
+    // So we'll return empty text and put everything in the code block
+    return {
+      text: '',  // No regular text for code examples
+      code: unescapedSubtext  // The entire content is code
+    };
+  };
+
   const parseOptionText = (optionText: string) => {
     const unescapedText = optionText.replace(/\\n/g, '\n');
     const parts = unescapedText.split('\n');
@@ -91,6 +114,7 @@ const QuestionsPage: React.FC = () => {
         
         const parsedQuestions = data.map((question: Question) => {
           const parsedHeader = parseQuestionHeader(question.header);
+          const parsedSubtext = parseSubtext(question.subtext);
           const parsedOptions = question.options.map(option => {
             const parsed = parseOptionText(option.option_text);
             return {
@@ -99,10 +123,11 @@ const QuestionsPage: React.FC = () => {
               parsedCode: parsed.code
             };
           });
-
+        
           return {
             ...question,
             parsedHeader,
+            parsedSubtext,  // Add this line
             options: parsedOptions
           };
         });
@@ -300,7 +325,22 @@ const QuestionsPage: React.FC = () => {
           {/* Render question text */}
           <h3 className="text-xl font-bold mb-2">{parsedHeader.text}</h3>
           
-          <p className="text-gray-600 mb-4">{currentQuestion.subtext}</p>
+          {/* <p className="text-gray-600 mb-4">{currentQuestion.subtext}</p> */}
+
+          <div className="text-gray-600 mb-4">
+            {currentQuestion.parsedSubtext?.text && (
+              <p>{currentQuestion.parsedSubtext?.text}</p>
+            )}
+            {currentQuestion.parsedSubtext?.code && (
+              <pre className="bg-gray-100 p-4 rounded-md overflow-x-auto text-sm font-mono mt-2">
+                {currentQuestion.parsedSubtext?.code.split('\n').map((line, i) => (
+                  <div key={i} className="whitespace-pre">
+                    {line}
+                  </div>
+                ))}
+              </pre>
+            )}
+          </div>
           
           {/* Render code block if exists */}
           {parsedHeader.code && (
