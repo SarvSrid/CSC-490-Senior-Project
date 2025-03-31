@@ -42,7 +42,7 @@ function Dashboard() {
     } else {
       const parsedUser = JSON.parse(userData);
       setUser(parsedUser);
-      fetch(`http://localhost:5001/api/progress?user_id=${parsedUser.id}`)
+      fetch(`http://localhost:5000/api/progress?user_id=${parsedUser.id}`)
         .then((response) => response.json())
         .then((data) => {
           console.log("Fetched progress data:", data);
