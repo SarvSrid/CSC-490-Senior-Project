@@ -116,7 +116,7 @@ export default function Dashboard() {
         <nav className="nav-menu">
           <ul>
             <li className="active">
-              <Link href="/dashboard">
+              <Link href="/user/dashboard">
                 <i className="fa-solid fa-house"></i>
                 <span className="nav-text">Home</span>
               </Link>
@@ -128,7 +128,7 @@ export default function Dashboard() {
               </Link>
             </li> */}
             <li>
-              <Link href="/ai-tutor">
+              <Link href="/user/chatbot">
                 <i className="fa-solid fa-robot"></i>
                 <span className="nav-text">AI Tutor</span>
               </Link>

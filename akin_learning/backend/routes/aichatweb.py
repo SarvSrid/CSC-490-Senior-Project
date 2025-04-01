@@ -1,6 +1,5 @@
 import openai
 import logging
-# from config import Config
 from flask_cors import CORS
 from flask import Flask, request, jsonify
 from datetime import datetime
@@ -18,10 +17,10 @@ CORS(app)
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
-@app.route('/api/chatbot', methods=['POST'])
-def chatbot():
+@app.route('/api/chatbotweb', methods=['POST'])
+def chatbot_web():
     """
-    Handle chatbot requests.
+    Handle chatbot web requests.
     """
     data = request.get_json()
     user_input = data.get('message')
@@ -43,7 +42,7 @@ def chatbot():
             'conversation_history': filtered_history
         }), 200
     except Exception as e:
-        logging.error(f"Error in chatbot endpoint: {e}")
+        logging.error(f"Error in chatbot web endpoint: {e}")
         return jsonify({"error": "An error occurred while processing your request."}), 500
 
 def generate_chatbot_response(conversation_history):
@@ -54,9 +53,10 @@ def generate_chatbot_response(conversation_history):
     system_prompt = {
         "role": "system",
         "content": (
-            "You are a programming tutor that helps users learn by asking follow-up questions instead of providing "
-            "direct answers. This is in the form of Socratic learning. Your goal is to guide the user to think critically and arrive at the solution themselves. "
-            "Always respond in a friendly and encouraging tone. The reply must not cross more than a 75 words."
+            "You are a programming tutor that helps users know more about the subjects they are learning. "
+            "The subjects are strictly about computer programming, computer science, and software engineering. "
+            "You do not answer any other questions outside of these subjects. "
+            "Always respond in a friendly and encouraging tone. The reply must not cross more than 75 words."
         )
     }
 
@@ -84,5 +84,5 @@ def generate_chatbot_response(conversation_history):
         raise
 
 if __name__ == '__main__':
-    # Run the Flask app on port 5004
-    app.run(debug=True, port=5004)
+    # Run the Flask app on port 5005
+    app.run(debug=True, port=5005)

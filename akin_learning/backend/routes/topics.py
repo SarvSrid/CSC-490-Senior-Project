@@ -1,21 +1,24 @@
 from flask import Flask, jsonify, request
-from flask_sqlalchemy import SQLAlchemy
-from flask_jwt_extended import JWTManager
 from flask_cors import CORS
-from config import Config
-from utils.db import db
-from models import Topic, Subject  # Import the Topic and Subject models
+import psycopg2
+from psycopg2.extras import RealDictCursor
+import os
 
 app = Flask(__name__)
-app.config.from_object(Config)
+
+# Load database URL from environment variable
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 # Print the database URI to verify
-print("SQLALCHEMY_DATABASE_URI:", app.config['SQLALCHEMY_DATABASE_URI'], flush=True)
+print("DATABASE_URL:", DATABASE_URL, flush=True)
 
 # Initialize extensions
-db.init_app(app)
-jwt = JWTManager(app)
 CORS(app)  # Enable CORS
+
+# Database connection function
+def get_db_connection():
+    conn = psycopg2.connect(DATABASE_URL)
+    return conn
 
 @app.route('/api/topics', methods=['GET'])
 def get_topics():
@@ -28,23 +31,53 @@ def get_topics():
     except ValueError:
         return jsonify({"error": "subject_id must be a valid integer"}), 400
 
-    # Fetch topics for the subject
-    topics = Topic.query.filter_by(subject_id=subject_id).all()
+    # Hardcoded user ID
+    current_user_id = 1
+
+    # Fetch topics with progress for the subject using raw SQL
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        
+        # Query to get topics with progress information
+        query = """
+        SELECT 
+            t.id, 
+            t.name, 
+            t.difficulty_level,
+            COALESCE(p.percentage, 0) AS progress_percentage,
+            COALESCE(p.active_questions, 0) AS active_questions,
+            COALESCE(p.completed_questions, 0) AS completed_questions
+        FROM 
+            topic t
+        LEFT JOIN 
+            progress p ON t.id = p.topic_id AND p.user_id = %s
+        WHERE 
+            t.subject_id = %s
+        """
+        
+        cursor.execute(query, (current_user_id, subject_id))
+        topics = cursor.fetchall()
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
     # Format the response
     response = [
         {
-            "id": topic.id,
-            "name": topic.name,
-            "difficulty_level": topic.difficulty_level
+            "id": topic['id'],
+            "name": topic['name'],
+            "difficulty_level": topic['difficulty_level'],
+            "progress": {
+                "percentage": float(topic['progress_percentage']),  # Convert Decimal to float for JSON
+                "active_questions": topic['active_questions'],
+                "completed_questions": topic['completed_questions']
+            }
         }
         for topic in topics
     ]
     return jsonify(response), 200
-
-# Create database tables
-with app.app_context():
-    db.create_all()
 
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
