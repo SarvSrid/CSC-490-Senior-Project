@@ -1,13 +1,14 @@
-from flask import Flask, jsonify, request, session, redirect, abort
+from flask import Flask, jsonify, request, session, redirect, abort, Blueprint
 from flask_cors import CORS # Enable Cross-Origin Resource Sharing
 from google.oauth2 import id_token
 from google_auth_oauthlib.flow import Flow
+from akin_learning.backend.app import app
 import os
+
 from config.db_config import get_db_connection
 
+auth_blueprint = Blueprint('auth', __name__, url_prefix='/auth')
 
-app = Flask(__name__)
-CORS(app)
 app.secret_key = os.getenv("FLASK_SECRET_KEY")
 
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
@@ -23,13 +24,13 @@ flow = Flow.from_client_secrets_file(
     redirect_uri='http://localhost:5000/callback'
 )
 
-@app.route('/google')
+@auth_blueprint.route('/google')
 def google_login():
     authorization_url, state = flow.authorization_url()
     session['state'] = state
     return redirect(authorization_url)
 
-@app.route('/callback')
+@auth_blueprint.route('/callback')
 def google_callback():
     
     state = session.get('state')
@@ -78,13 +79,12 @@ def google_callback():
         conn.close()
 
         # Redirect to a logged-in area
-        return redirect('/dashboard')
-
+        return redirect('http://localhost:3000/user/dashboard')
     except Exception as e:
         print("Error processing Google callback:", e)
         return "Failed to log in with Google."
 
-@app.route('/debug-session')
+@auth_blueprint.route('/debug-session')
 def debug_session():
     print(session)  # Outputs session data to the terminal
     return jsonify(dict(session))  # Returns the session data as a JSON response
