@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation"; 
 
 interface Option {
   id: number;
@@ -35,6 +36,7 @@ interface ChatbotMessage {
 }
 
 const QuestionsPage: React.FC = () => {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const topicId = searchParams ? searchParams.get("topic_id") : null;
 
@@ -295,6 +297,12 @@ const QuestionsPage: React.FC = () => {
         <Link href="/auth/signin/signin1">
           <button className="absolute bottom-5 left-5">🚪 Log Out</button>
         </Link>
+        <button
+            onClick={() => router.back()} // Navigate to the previous page
+            className="block text-left bg-gray-200 text-black px-2 py-1 rounded hover:bg-gray-300 text-sm mt-4"
+          >
+            🔙 Previous Topic
+        </button>
       </aside>
 
       {/* Main Content */}
