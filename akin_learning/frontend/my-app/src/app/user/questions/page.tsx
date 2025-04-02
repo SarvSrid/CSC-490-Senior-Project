@@ -14,6 +14,7 @@ import {
   User,
   ChevronDown,
   Menu,
+  ArrowLeft,
 } from "lucide-react";
 import Cookies from "js-cookie";
 
@@ -192,7 +193,7 @@ const QuestionsPage: React.FC = () => {
       activeCondition: () =>
         pathname === "/user/topics" || pathname === "/user/questions",
     },
-    { icon: Cpu, label: "AI Tutor", path: "/user/ai-tutor" },
+    { icon: Cpu, label: "AI Tutor", path: "/user/chatbot" },
     { icon: Settings, label: "Settings", path: "/user/settings" },
   ];
   const bottomMenuItems = [
@@ -391,10 +392,10 @@ const QuestionsPage: React.FC = () => {
                 key={optionIndex}
                 onClick={() => handleOptionSelect(option.id.toString(), index)}
                 className={`cursor-pointer p-3 border rounded-full transition-colors ${isSelected
-                    ? "bg-pink-500 border-pink-500 text-white"
-                    : isDarkMode
-                      ? "bg-transparent border-gray-400 text-gray-200 hover:bg-gray-700"
-                      : "bg-transparent border-gray-300 text-gray-700 hover:bg-gray-100"
+                  ? "bg-pink-500 border-pink-500 text-white"
+                  : isDarkMode
+                    ? "bg-transparent border-gray-400 text-gray-200 hover:bg-gray-700"
+                    : "bg-transparent border-gray-300 text-gray-700 hover:bg-gray-100"
                   }`}
               >
                 {option.option_text}
@@ -525,6 +526,7 @@ const QuestionsPage: React.FC = () => {
         className={`${isSidebarCollapsed ? "ml-16" : "ml-64"} transition-all duration-300 pt-20 p-10`}
       >
         <div className="w-full mb-8 px-1">
+          
           <h2
             className={`text-3xl font-light text-left mb-2 ${isDarkMode ? "text-white" : "text-gray-600"
               }`}
@@ -535,6 +537,19 @@ const QuestionsPage: React.FC = () => {
             className={`w-full border-t ${isDarkMode ? "border-gray-600" : "border-gray-300"
               }`}
           />
+          <div className="mb-4">
+            <button
+              onClick={() => router.back()} // Navigate to the previous page
+              className={`px-1 mt-4 mt-4py-1 text-sm rounded-full transition-colors border 
+                ${isDarkMode
+                  ? "border-gray-600 text-white hover:bg-gray-600"
+                  : "border-gray-300 text-gray-800 hover:bg-gray-300"
+              }`}
+            >
+               <ArrowLeft className="w-10 h-6 rounded-full mr-2 " />
+              
+            </button>
+          </div>
         </div>
         {/* Navigation Buttons */}
         <div className="flex justify-center mb-6">
@@ -543,8 +558,8 @@ const QuestionsPage: React.FC = () => {
               key={index}
               onClick={() => handleQuestionChange(index)}
               className={`mx-2 px-4 py-2 rounded-full transition-transform duration-200 transform hover:scale-110 ${currentQuestionIndex === index
-                  ? "bg-pink-500 text-white"
-                  : "bg-gray-200 text-black"
+                ? "bg-pink-500 text-white"
+                : "bg-gray-200 text-black"
                 }`}
             >
               {index + 1}
@@ -603,8 +618,8 @@ const QuestionsPage: React.FC = () => {
               >
                 <div
                   className={`max-w-xs p-3 rounded-lg ${msg.role === "user"
-                      ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white"
-                      : "bg-gray-200 text-gray-800"
+                    ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white"
+                    : "bg-gray-200 text-gray-800"
                     }`}
                 >
                   <p>{msg.content}</p>

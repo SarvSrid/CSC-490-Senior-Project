@@ -928,3 +928,21 @@ d1 {
   border-image-slice: 1;
   border-radius: 20px;
 }
+.bottom-4 {
+  bottom: 1.4rem;
+}
+.right-6 {
+  right: 1.7rem;
+}
+.bottom-10 {
+  bottom: 2.2rem;
+}
+.pr-16 {
+  padding-right: 5rem;
+  padding-left: 2rem;
+}
+
+.min-h-\[40px\] {
+  min-height: 40px;
+  max-block-size: 120px;
+}

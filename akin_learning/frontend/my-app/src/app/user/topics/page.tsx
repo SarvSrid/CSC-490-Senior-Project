@@ -171,7 +171,7 @@ const SubjectsPage: React.FC = () => {
   const menuItems = [
     { icon: Home, label: "Home", path: "/user/dashboard" },
     //{ icon: BookOpen, label: "Subjects", path: "/user/topics" },
-    { icon: Cpu, label: "AI Tutor", path: "/user/ai-tutor" },
+    { icon: Cpu, label: "AI Tutor", path: "/user/chatbot" },
     { icon: Settings, label: "Settings", path: "/user/settings" },
   ];
   const bottomMenuItems = [
