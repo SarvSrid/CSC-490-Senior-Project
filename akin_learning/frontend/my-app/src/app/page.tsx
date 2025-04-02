@@ -120,16 +120,12 @@ export default function Home() {
       </header>
       <main className="flex flex-col items-center space-y-6">
         <div className="space-x-4">
-          <Link href="/auth/signin/signin1" legacyBehavior>
+          <Link href="/auth/signin" legacyBehavior>
             <a className="bg-blue-700 hover:bg-blue-800 text-white px-6 py-3 rounded-lg shadow-lg transition-transform transform hover:scale-105">
               Sign In
             </a>
           </Link>
-          <Link href="/auth/signin" legacyBehavior>
-            <a className="bg-white text-blue-700 px-6 py-3 rounded-lg shadow-lg transition-transform transform hover:scale-105">
-              Sign Up
-            </a>
-            </Link>
+
         </div>
       </main>
       <footer className="absolute bottom-4 text-center text-sm">

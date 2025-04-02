@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 import bcrypt
 from flask import Flask, jsonify, request, session, redirect, abort, Blueprint
 import os
@@ -6,6 +8,29 @@ import psycopg2
 from akin_learning.backend.routes.config.model import get_db_connection
 
 auth_blueprint = Blueprint('auth', __name__, url_prefix='/auth')
+
+@auth_blueprint.route('/')
+def page():
+    return redirect('http://localhost:3000/auth/signin')
+
+@auth_blueprint.route('/validate', methods=['GET'])
+def validate():
+    # print("Session:\n",session)
+    # print("Cookies:\n", request.cookies)
+
+    if 'user_id' not in session:
+        abort(401)  # No valid user session
+
+    if 'access_token' not in session:
+        abort(401)  # No authentication token
+
+    print(session['expires_in'])
+    print(datetime.now(timezone.utc))
+    if 'expires_in' not in session or datetime.now(timezone.utc) > session['expires_in']:
+        abort(401)  # Token expired
+
+    return {"message": "Token is valid"}, 200
+
 
 @auth_blueprint.route('/login', methods=['POST'])
 def login():
@@ -76,3 +101,10 @@ def signup():
         cur.close()
         conn.close()
 
+
+@auth_blueprint.route('/logout')
+def logout():
+    session.clear()  # Clear server-side session data
+    response = (jsonify({"message": "Logged out successfully"}))
+    response.set_cookie('session', '', expires=0)
+    return response

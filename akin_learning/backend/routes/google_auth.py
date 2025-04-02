@@ -1,3 +1,4 @@
+import google
 from flask import Flask, jsonify, request, session, redirect, abort, Blueprint, current_app
 from flask_cors import CORS # Enable Cross-Origin Resource Sharing
 from google.oauth2 import id_token
@@ -58,13 +59,19 @@ def google_callback():
         google_user_email = id_info.get('email')
         google_user_name = id_info.get('name')
 
-        print("Google User ID:", google_user_id)
-        print("Google User Email:", google_user_email)
-        print("Google User Name:", google_user_name)
-
+        # print("Google User ID:", google_user_id)
+        # print("Google User Email:", google_user_email)
+        # print("Google User Name:", google_user_name)
+        # Sessions
         session['google_id'] = google_user_id
         session['email'] = google_user_email
         session['name'] = google_user_name
+        credentials = flow.credentials
+        session['access_token'] = credentials.token  # Access token
+        # refresh not necessary right now
+        # session['refresh_token'] = credentials.refresh_token  # Refresh token
+        session['expires_in'] = credentials.expiry  # Expiration time
+
 
         conn = get_db_connection()
         cur = conn.cursor()
@@ -76,12 +83,19 @@ def google_callback():
             if user is None:
                 cur.execute("INSERT INTO user_profile(google_id, email, username, password) VALUES (%s, %s, %s, NULL)",
                             (google_user_id, google_user_email, google_user_name))
+                user_id = cur.fetchone()[0]
                 conn.commit()
+            else:
+                user_id = user[0]
+
+            session['user_id'] = user_id
+
+
         except Exception as e:
             print("Database Error:", e)
 
         # Redirect to a logged-in area
-        return redirect('http://localhost:3000/user/dashboard')
+        return redirect('http://localhost:5000/dashboard/home')
     except Exception as e:
         print("Error processing Google callback:", e)
         return "Failed to log in with Google."
@@ -90,72 +104,3 @@ def google_callback():
 def debug_session():
     print(session)  # Outputs session data to the terminal
     return jsonify(dict(session))  # Returns the session data as a JSON response
-
-# CORS(app)  # Enable CORS
-
-# # Static user data for 5 users mapped by their email addresses.
-# registered_users = {
-#     "sarveshsridhe@gmail.com": {
-#         "username": "User1",
-#         "address": "100 First St, CityA",
-#         "phone": "111-111-1111"
-#     },
-#     "user2@example.com": {
-#         "username": "User2",
-#         "address": "200 Second St, CityB",
-#         "phone": "222-222-2222"
-#     },
-#     "user3@example.com": {
-#         "username": "User3",
-#         "address": "300 Third St, CityC",
-#         "phone": "333-333-3333"
-#     },
-#     "user4@example.com": {
-#         "username": "User4",
-#         "address": "400 Fourth St, CityD",
-#         "phone": "444-444-4444"
-#     },
-#     "user5@example.com": {
-#         "username": "User5",
-#         "address": "500 Fifth St, CityE",
-#         "phone": "555-555-5555"
-#     }
-# }
-
-# # Replace with your actual Google client ID.
-# GOOGLE_CLIENT_ID = ""
-
-# @app.route('/api/dashboard', methods=['GET'])
-# def dashboard():
-#     auth_header = request.headers.get('Authorization')
-#     if not auth_header:
-#         abort(401, description="Missing authorization token")
-
-#     token = auth_header.split(' ')[1] if ' ' in auth_header else auth_header
-#     print(f"Received token: {token}", flush=True)
-
-#     try:
-#         # Verify the token using Google's public keys.
-#         idinfo = id_token.verify_oauth2_token(token, grequests.Request(), GOOGLE_CLIENT_ID)
-#         print("Decoded token info:", idinfo, flush=True)
-#         user_email = idinfo.get("email")
-#         print(f"Extracted user email: {user_email}", flush=True)
-#         if not user_email:
-#             abort(401, description="Email not found in token")
-#         if user_email not in registered_users:
-#             print(f"User {user_email} is not in registered_users", flush=True)
-#             abort(403, description="User authenticated but not registered")
-#         # Valid and registered user returns a 200 along with user data.
-#         return jsonify(registered_users[user_email])
-#     except HTTPException as http_ex:
-#         # Re-raise HTTPExceptions so that the intended status code is preserved.
-#         raise http_ex
-#     except ValueError as ve:
-#         print(f"Token verification error: {ve}", flush=True)
-#         abort(401, description="User not authenticated")
-#     except Exception as e:
-#         print(f"Unexpected error: {e}", flush=True)
-#         abort(500, description="Internal server error")
-
-# if __name__ == '__main__':
-#     app.run(debug=True, port=5001)
