@@ -28,6 +28,18 @@ interface ProfileDropdownProps {
   buttonRef: React.RefObject<HTMLButtonElement | null>;
 }
 
+const getProgressBarColor = (percentage: number) => {
+  if (percentage === 100) {
+    return "linear-gradient(90deg, #3B82F6, #8B5CF6, #EC4899)";
+  } else if (percentage < 33) {
+    return "#FF0000";
+  } else if (percentage < 66) {
+    return "#FFFF00";
+  } else {
+    return "#00FF00";
+  }
+};
+
 const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
   isProfileOpen,
   isDarkMode,
@@ -36,6 +48,7 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
   buttonRef,
 }) => {
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -58,11 +71,9 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
   return (
     <div
       ref={dropdownRef}
-      className={`fixed right-4 mt-16 w-64 ${
-        isDarkMode ? "bg-gray-800 text-white" : "bg-gray-100 text-black"
-      } rounded-xl shadow-lg border ${
-        isDarkMode ? "border-gray-700" : "border-gray-200"
-      } z-50`}
+      className={`fixed right-4 mt-16 w-64 ${isDarkMode ? "bg-gray-800 text-white" : "bg-gray-100 text-black"
+        } rounded-xl shadow-lg border ${isDarkMode ? "border-gray-700" : "border-gray-200"
+        } z-50`}
     >
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center">
@@ -79,30 +90,28 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
       </div>
       <div className="p-2">
         <button
-          className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
-            isDarkMode ? "text-white hover:bg-gray-700" : "hover:bg-gray-100"
-          }`}
+          onClick={() => router.push('/user/settings/account')}
+          className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${isDarkMode ? "text-white hover:bg-gray-700" : "hover:bg-gray-100"
+            }`}
         >
           <User className="inline w-5 h-5 mr-3" />
           Edit Profile
         </button>
-        <Link
-          href="/user/settings"
-          className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
-            isDarkMode ? "text-white hover:bg-gray-700" : "hover:bg-gray-100"
-          }`}
+        <button
+          onClick={() => router.push('/user/settings')}
+          className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${isDarkMode ? "text-white hover:bg-gray-700" : "hover:bg-gray-100"
+            }`}
         >
           <Settings className="inline w-5 h-5 mr-3" />
           Settings
-        </Link>
+        </button>
         <button
           onClick={() => {
             toggleTheme();
             closeProfile();
           }}
-          className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
-            isDarkMode ? "text-white hover:bg-gray-700" : "hover:bg-gray-100"
-          }`}
+          className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${isDarkMode ? "text-white hover:bg-gray-700" : "hover:bg-gray-100"
+            }`}
         >
           {isDarkMode ? (
             <>
@@ -158,6 +167,17 @@ const SubjectsPage: React.FC = () => {
   const [topics, setTopics] = useState<Topic[]>([]);
   const [error, setError] = useState<string | null>(null);
 
+  // Define your sidebar menu items
+  const menuItems = [
+    { icon: Home, label: "Home", path: "/user/dashboard" },
+    //{ icon: BookOpen, label: "Subjects", path: "/user/topics" },
+    { icon: Cpu, label: "AI Tutor", path: "/user/ai-tutor" },
+    { icon: Settings, label: "Settings", path: "/user/settings" },
+  ];
+  const bottomMenuItems = [
+    { icon: LogOut, label: "Log Out", path: "/auth/signin/signin1" },
+  ];
+
   useEffect(() => {
     if (subject_id) {
       fetch(`http://localhost:5002/api/topics?subject_id=${subject_id}`)
@@ -190,66 +210,46 @@ const SubjectsPage: React.FC = () => {
 
   return (
     <div
-      className={`min-h-screen ${
-        isDarkMode ? "bg-gray-800 text-white" : "bg-gray-100 text-black"
-      }`}
+      className={`min-h-screen ${isDarkMode ? "bg-gray-800 text-white" : "bg-gray-100 text-black"
+        }`}
     >
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 h-full ${
-          isSidebarCollapsed ? "w-16" : "w-64"
-        } transition-all duration-300 z-20`}
+        className={`fixed top-0 left-0 h-full ${isSidebarCollapsed ? "w-16" : "w-64"} transition-all duration-300 z-20`}
         style={{ background: "var(--sidebar-bg)", color: "var(--sidebar-color)" }}
       >
         <nav className="mt-20">
-          {[
-            { icon: Home, label: "Home", path: "/user/dashboard" },
-            { icon: BookOpen, label: "Subjects", path: "/user/topics" },
-            { icon: Cpu, label: "AI Tutor", path: "/user/ai-tutor" },
-            { icon: Settings, label: "Settings", path: "/user/settings" },
-          ].map((item, index) => {
+          {menuItems.map((item, index) => {
             const isActive = pathname.startsWith(item.path);
             return (
               <Link key={index} href={item.path}>
                 <div
-                  className={`flex items-center m-2 ${
-                    isSidebarCollapsed ? "px-4" : "px-6"
-                  } py-3 rounded-lg transition-colors ${
-                    isActive ? "bg-white/20" : "hover:bg-white/10"
-                  }`}
+                  className={`flex items-center m-2 ${isSidebarCollapsed ? "px-4" : "px-6"} py-3 rounded-lg transition-colors ${isActive ? "bg-white/20" : "hover:bg-white/10"
+                    }`}
                 >
                   <item.icon
                     className={`w-6 h-6 ${isSidebarCollapsed ? "" : "mr-4"}`}
                     fill={isActive ? "currentColor" : "none"}
                   />
-                  {!isSidebarCollapsed && (
-                    <span className="text-sm">{item.label}</span>
-                  )}
+                  {!isSidebarCollapsed && <span className="text-sm">{item.label}</span>}
                 </div>
               </Link>
             );
           })}
           <div className="absolute bottom-0 left-0 right-0 border-t border-white/10">
-            {[
-              { icon: LogOut, label: "Log Out", path: "/auth/signin/signin1" },
-            ].map((item, index) => {
+            {bottomMenuItems.map((item, index) => {
               const isActive = pathname.startsWith(item.path);
               return (
                 <Link key={index} href={item.path}>
                   <div
-                    className={`flex items-center ${
-                      isSidebarCollapsed ? "px-4" : "px-6"
-                    } py-3 transition-colors ${
-                      isActive ? "bg-white/20" : "hover:bg-white/10"
-                    }`}
+                    className={`flex items-center m-2 ${isSidebarCollapsed ? "px-4" : "px-6"} py-3 rounded-lg transition-colors ${isActive ? "bg-white/20" : "hover:bg-white/10"
+                      }`}
                   >
                     <item.icon
                       className={`w-6 h-6 ${isSidebarCollapsed ? "" : "mr-4"}`}
                       fill={isActive ? "currentColor" : "none"}
                     />
-                    {!isSidebarCollapsed && (
-                      <span className="text-sm">{item.label}</span>
-                    )}
+                    {!isSidebarCollapsed && <span className="text-sm">{item.label}</span>}
                   </div>
                 </Link>
               );
@@ -260,15 +260,14 @@ const SubjectsPage: React.FC = () => {
 
       {/* Header */}
       <header
-        className={`fixed top-0 left-0 right-0 ${
-          isDarkMode ? "bg-gray-800" : "bg-gray-100"
-        } shadow-md z-30 flex items-center justify-between`}
+        className={`fixed top-0 left-0 right-0 ${isDarkMode ? "bg-gray-800" : "bg-gray-100"
+          } shadow-md z-30 flex items-center justify-between`}
         style={{ padding: "8px 24px 8px 16px" }}
       >
         <div className="flex items-center space-x-2">
           <button
-            onClick={toggleSidebar}
-            className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors"
+            onClick={() => setSidebarCollapsed(!isSidebarCollapsed)}
+            className="p-2 hover:bg-gray-200 dark:hover:bg-gray-300 rounded-full transition-colors"
           >
             <Menu className="w-6 h-6" />
           </button>
@@ -278,9 +277,8 @@ const SubjectsPage: React.FC = () => {
           <button
             ref={profileButtonRef}
             onClick={toggleProfile}
-            className={`flex items-center px-4 py-2 rounded-full ${
-              isDarkMode ? "bg-gray-700 hover:bg-gray-600" : "bg-gray-100 hover:bg-gray-200"
-            } transition-colors`}
+            className={`flex items-center px-4 py-2 rounded-full ${isDarkMode ? "bg-gray-700 hover:bg-gray-600" : "bg-gray-100 hover:bg-gray-200"
+              } transition-colors`}
           >
             <img
               src="https://via.placeholder.com/40"
@@ -305,74 +303,79 @@ const SubjectsPage: React.FC = () => {
       )}
 
       {/* Main Content */}
-      <div
-        className={`${isSidebarCollapsed ? "ml-16" : "ml-64"} transition-all duration-300 pt-20 p-8`}
-      >
+      <div className={`${isSidebarCollapsed ? "ml-16" : "ml-64"} transition-all duration-300 pt-20 p-8`}>
         <div className="w-full mb-8 px-1">
           <h2
-            className={`text-3xl font-light text-left mb-2 ${
-              isDarkMode ? "text-white" : "text-gray-600"
-            }`}
+            className={`text-3xl font-light text-left mb-2 ${isDarkMode ? "text-white" : "text-gray-600"
+              }`}
           >
-            Subjects
+            Topics:
           </h2>
           <hr
-            className={`w-full border-t ${
-              isDarkMode ? "border-gray-600" : "border-gray-300"
-            }`}
+            className={`w-full border-t ${isDarkMode ? "border-gray-600" : "border-gray-300"
+              }`}
           />
         </div>
-        {/* Display error if subject_id is missing or API error occurred */}
-        {!subject_id ? (
-          <div className="flex justify-center items-center h-screen">
-            <p className="text-red-500">
-              Error: Subject ID is missing or invalid.
-            </p>
-          </div>
-        ) : error ? (
-          <div className="flex justify-center items-center h-screen">
-            <p className="text-red-500">Error: {error}</p>
-          </div>
-        ) : (
-          // Topics grid (from the old file)
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-            {topics.map((topic) => (
-              <div
-                key={topic.id}
-                className="border p-5 rounded-lg shadow-md hover:shadow-lg transition-shadow"
+        {/* Topics grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+          {topics.map((topic) => (
+            <div
+              key={topic.id}
+              className={`border p-5 rounded-lg bg-transparent ${isDarkMode ? "border-gray-600" : "border-gray-300"
+                }`}
+            >
+              <h3
+                className={`text-xl font-bold text-center mb-4 ${isDarkMode ? "text-white" : "text-gray-800"
+                  }`}
               >
-                <h3 className="text-xl font-bold text-center mb-4">
-                  {topic.name}
-                </h3>
-                <p className="text-center mb-2">
-                  Difficulty: {difficultyLabels[topic.difficulty_level]}
-                </p>
-                {/* Progress Bar */}
-                <div className="w-full bg-gray-200 rounded-full h-2.5 mb-2">
-                  <div
-                    className="bg-blue-600 h-2.5 rounded-full"
-                    style={{ width: `${topic.progress.percentage}%` }}
-                  ></div>
-                </div>
-                {/* Progress Text */}
-                <p className="text-center text-sm text-gray-600 mb-4">
-                  {topic.progress.completed_questions} of{" "}
-                  {topic.progress.active_questions} completed (
-                  {topic.progress.percentage.toFixed(0)}%)
-                </p>
-                <div className="flex justify-center">
-                  <Link href={`/user/questions?topic_id=${topic.id}`} legacyBehavior>
-                    <a className="text-blue-600 hover:underline font-medium">
-                      View Questions
-                    </a>
-                  </Link>
-                </div>
+                {topic.name}
+              </h3>
+              <p
+                className={`text-center mb-2 ${isDarkMode ? "text-gray-300" : "text-gray-600"
+                  }`}
+              >
+                Difficulty: {difficultyLabels[topic.difficulty_level]}
+              </p>
+              {/* Progress Bar */}
+              <div className="w-full bg-gray-200 rounded-full h-2.5 mb-2">
+                <div
+                  className="h-2.5 rounded-full"
+                  style={{
+                    width: `${topic.progress.percentage}%`,
+                    background: getProgressBarColor(topic.progress.percentage),
+                  }}
+
+                ></div>
               </div>
-            ))}
-          </div>
-        )}
+
+              {/* Progress Text */}
+              <p
+                className={`text-center text-sm mb-4 ${isDarkMode ? "text-gray-300" : "text-gray-600"
+                  }`}
+              >
+                {topic.progress.completed_questions} of{" "}
+                {topic.progress.active_questions} completed (
+                {topic.progress.percentage.toFixed(0)}%)
+              </p>
+              <div className="flex justify-center">
+                <Link href={`/user/questions?topic_id=${topic.id}`} legacyBehavior>
+                  <a
+                    className={`px-4 py-2 rounded-full border transition-colors ${isDarkMode
+                        ? "border-gray-600 text-white hover:bg-gray-600"
+                        : "border-gray-300 text-gray-800 hover:bg-gray-300"
+                      }`}
+                  >
+                    View Questions
+                  </a>
+                </Link>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
+
     </div>
+
   );
 };
 

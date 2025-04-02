@@ -36,6 +36,7 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
   buttonRef,
 }) => {
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -59,19 +60,13 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
   return (
     <div
       ref={dropdownRef}
-      className={`fixed right-4 mt-16 w-64 ${
-        isDarkMode ? "bg-gray-800 text-white" : "bg-gray-100 text-black"
-      } rounded-xl shadow-lg border ${
-        isDarkMode ? "border-gray-700" : "border-gray-200"
-      } z-50`}
+      className={`fixed right-4 mt-16 w-64 ${isDarkMode ? "bg-gray-800 text-white" : "bg-gray-100 text-black"
+        } rounded-xl shadow-lg border ${isDarkMode ? "border-gray-700" : "border-gray-200"
+        } z-50`}
     >
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center">
-          <img
-            src="https://via.placeholder.com/60"
-            alt="Avatar"
-            className="w-12 h-12 rounded-full"
-          />
+          <User className="w-8 h-8 rounded-full mr-2" />
           <div className="ml-3">
             <h3 className="font-medium">User123</h3>
             <p className="text-sm text-gray-500">ID: 1234567</p>
@@ -80,30 +75,28 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
       </div>
       <div className="p-2">
         <button
-          className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
-            isDarkMode ? "text-white hover:bg-gray-700" : "hover:bg-gray-100"
-          }`}
+          onClick={() => router.push('/user/settings/account')}
+          className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${isDarkMode ? "text-white hover:bg-gray-700" : "hover:bg-gray-100"
+            }`}
         >
           <User className="inline w-5 h-5 mr-3" />
           Edit Profile
         </button>
-        <Link
-          href="/user/settings"
-          className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
-            isDarkMode ? "text-white hover:bg-gray-700" : "hover:bg-gray-100"
-          }`}
+        <button
+          onClick={() => router.push('/user/settings')}
+          className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${isDarkMode ? "text-white hover:bg-gray-700" : "hover:bg-gray-100"
+            }`}
         >
           <Settings className="inline w-5 h-5 mr-3" />
           Settings
-        </Link>
+        </button>
         <button
           onClick={() => {
             toggleTheme();
             closeProfile();
           }}
-          className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
-            isDarkMode ? "text-white hover:bg-gray-700" : "hover:bg-gray-100"
-          }`}
+          className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${isDarkMode ? "text-white hover:bg-gray-700" : "hover:bg-gray-100"
+            }`}
         >
           {isDarkMode ? (
             <>
@@ -208,11 +201,14 @@ const QuestionsPage: React.FC = () => {
 
   // Fetch questions from API using topic_id
   useEffect(() => {
+    if (!topic_id) {
+      console.error("topic_id is missing");
+      setIsLoading(false);
+      return;
+    }
     const fetchQuestions = async () => {
       try {
-        const response = await fetch(
-          `http://localhost:5003/api/questions?topic_id=${topic_id}`
-        );
+        const response = await fetch(`http://localhost:5003/api/questions?topic_id=${topic_id}`);
         if (!response.ok) {
           throw new Error("Failed to fetch questions");
         }
@@ -378,14 +374,12 @@ const QuestionsPage: React.FC = () => {
     const selectedOption = index === currentQuestionIndex ? selectedOptionId : null;
     return (
       <div
-        className={`p-5 rounded-lg shadow-md ${
-          isDarkMode ? "bg-[rgb(31,41,55)] border border-gray-500" : "bg-white"
-        }`}
+        className={`p-5 rounded-lg shadow-md ${isDarkMode ? "bg-[rgb(31,41,55)] border border-gray-500" : "bg-white"
+          }`}
       >
         <h3
-          className={`text-xl font-bold mb-3 ${
-            isDarkMode ? "text-white" : "text-gray-900"
-          }`}
+          className={`text-xl font-bold mb-3 ${isDarkMode ? "text-white" : "text-gray-900"
+            }`}
         >
           {q.header} {/* Use q.header to show the actual question */}
         </h3>
@@ -396,13 +390,12 @@ const QuestionsPage: React.FC = () => {
               <div
                 key={optionIndex}
                 onClick={() => handleOptionSelect(option.id.toString(), index)}
-                className={`cursor-pointer p-3 border rounded-full transition-colors ${
-                  isSelected
+                className={`cursor-pointer p-3 border rounded-full transition-colors ${isSelected
                     ? "bg-pink-500 border-pink-500 text-white"
                     : isDarkMode
-                    ? "bg-transparent border-gray-400 text-gray-200 hover:bg-gray-700"
-                    : "bg-transparent border-gray-300 text-gray-700 hover:bg-gray-100"
-                }`}
+                      ? "bg-transparent border-gray-400 text-gray-200 hover:bg-gray-700"
+                      : "bg-transparent border-gray-300 text-gray-700 hover:bg-gray-100"
+                  }`}
               >
                 {option.option_text}
               </div>
@@ -436,9 +429,8 @@ const QuestionsPage: React.FC = () => {
 
   return (
     <div
-      className={`min-h-screen ${
-        isDarkMode ? "bg-[rgb(31,41,55)] text-white" : "bg-white text-black"
-      }`}
+      className={`min-h-screen ${isDarkMode ? "bg-[rgb(31,41,55)] text-white" : "bg-white text-black"
+        }`}
     >
       {/* Sidebar */}
       <aside
@@ -453,11 +445,9 @@ const QuestionsPage: React.FC = () => {
             return (
               <Link key={index} href={item.path}>
                 <div
-                  className={`flex items-center m-2 ${
-                    isSidebarCollapsed ? "px-4" : "px-6"
-                  } py-3 rounded-lg transition-colors ${
-                    isActive ? "bg-white/20" : "hover:bg-white/10"
-                  }`}
+                  className={`flex items-center m-2 ${isSidebarCollapsed ? "px-4" : "px-6"
+                    } py-3 rounded-lg transition-colors ${isActive ? "bg-white/20" : "hover:bg-white/10"
+                    }`}
                 >
                   <item.icon
                     className={`w-6 h-6 ${isSidebarCollapsed ? "" : "mr-4"}`}
@@ -474,11 +464,9 @@ const QuestionsPage: React.FC = () => {
               return (
                 <Link key={index} href={item.path}>
                   <div
-                    className={`flex items-center ${
-                      isSidebarCollapsed ? "px-4" : "px-6"
-                    } py-3 transition-colors ${
-                      isActive ? "bg-white/20" : "hover:bg-white/10"
-                    }`}
+                    className={`flex items-center ${isSidebarCollapsed ? "px-4" : "px-6"
+                      } py-3 transition-colors ${isActive ? "bg-white/20" : "hover:bg-white/10"
+                      }`}
                   >
                     <item.icon
                       className={`w-6 h-6 ${isSidebarCollapsed ? "" : "mr-4"}`}
@@ -500,8 +488,8 @@ const QuestionsPage: React.FC = () => {
       >
         <div className="flex items-center space-x-2">
           <button
-            onClick={toggleSidebar}
-            className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors"
+            onClick={() => setSidebarCollapsed(!isSidebarCollapsed)}
+            className="p-2 hover:bg-gray-200 dark:hover:bg-gray-300 rounded-full transition-colors"
           >
             <Menu className="w-6 h-6" />
           </button>
@@ -511,15 +499,10 @@ const QuestionsPage: React.FC = () => {
           <button
             ref={profileButtonRef}
             onClick={toggleProfile}
-            className={`flex items-center px-4 py-2 rounded-full ${
-              isDarkMode ? "bg-gray-700 hover:bg-gray-600" : "bg-gray-100 hover:bg-gray-200"
-            } transition-colors`}
+            className={`flex items-center px-4 py-2 rounded-full ${isDarkMode ? "bg-gray-700 hover:bg-gray-600" : "bg-gray-100 hover:bg-gray-200"
+              } transition-colors`}
           >
-            <img
-              src="https://via.placeholder.com/40"
-              alt="User Avatar"
-              className="w-8 h-8 rounded-full mr-2"
-            />
+            <User className="w-8 h-8 rounded-full mr-2" />
             <span className="font-medium">User123</span>
             <ChevronDown className="w-4 h-4 ml-2" />
           </button>
@@ -543,16 +526,14 @@ const QuestionsPage: React.FC = () => {
       >
         <div className="w-full mb-8 px-1">
           <h2
-            className={`text-3xl font-light text-left mb-2 ${
-              isDarkMode ? "text-white" : "text-gray-600"
-            }`}
+            className={`text-3xl font-light text-left mb-2 ${isDarkMode ? "text-white" : "text-gray-600"
+              }`}
           >
-            Questions: Python
+            Questions:
           </h2>
           <hr
-            className={`w-full border-t ${
-              isDarkMode ? "border-gray-600" : "border-gray-300"
-            }`}
+            className={`w-full border-t ${isDarkMode ? "border-gray-600" : "border-gray-300"
+              }`}
           />
         </div>
         {/* Navigation Buttons */}
@@ -561,11 +542,10 @@ const QuestionsPage: React.FC = () => {
             <button
               key={index}
               onClick={() => handleQuestionChange(index)}
-              className={`mx-2 px-4 py-2 rounded-full transition-transform duration-200 transform hover:scale-110 ${
-                currentQuestionIndex === index
+              className={`mx-2 px-4 py-2 rounded-full transition-transform duration-200 transform hover:scale-110 ${currentQuestionIndex === index
                   ? "bg-pink-500 text-white"
                   : "bg-gray-200 text-black"
-              }`}
+                }`}
             >
               {index + 1}
             </button>
@@ -622,11 +602,10 @@ const QuestionsPage: React.FC = () => {
                 className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
               >
                 <div
-                  className={`max-w-xs p-3 rounded-lg ${
-                    msg.role === "user"
-                      ? "bg-blue-500 text-white"
+                  className={`max-w-xs p-3 rounded-lg ${msg.role === "user"
+                      ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white"
                       : "bg-gray-200 text-gray-800"
-                  }`}
+                    }`}
                 >
                   <p>{msg.content}</p>
                   <p className="text-xs opacity-70 mt-1">{msg.timestamp}</p>
@@ -657,9 +636,8 @@ const QuestionsPage: React.FC = () => {
                 <textarea
                   placeholder="Type your question..."
                   wrap="soft"
-                  className={`w-full p-3 max-h-32 overflow-auto resize-none focus:outline-none transition-all ${
-                    isDarkMode ? "bg-gray-800 text-white" : "bg-white text-black"
-                  }`}
+                  className={`w-full p-3 max-h-32 overflow-auto resize-none focus:outline-none transition-all ${isDarkMode ? "bg-gray-800 text-white" : "bg-white text-black"
+                    }`}
                   disabled={isChatbotLoading}
                 />
                 {/* Divider: vertical on md and up, horizontal on small screens */}
@@ -667,7 +645,7 @@ const QuestionsPage: React.FC = () => {
                 <div className="block md:hidden h-px bg-gray-300" />
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 transition-all duration-200"
+                  className="px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 transition-all duration-200 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 "
                   disabled={isChatbotLoading}
                 >
                   Send
