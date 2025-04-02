@@ -70,18 +70,9 @@ const QuestionsPage: React.FC = () => {
     const unescapedSubtext = subtext.replace(/\\n/g, '\n');
     const parts = unescapedSubtext.split('\n');
     
-    // If there's no code block (no newlines), return just the text
-    // if (parts.length === 1) {
-    //   return {
-    //     text: unescapedSubtext,
-    //     code: ''
-    //   };
-    // }
-  
-    // So we'll return empty text and put everything in the code block
     return {
-      text: '',  // No regular text for code examples
-      code: unescapedSubtext  // The entire content is code
+      text: '',
+      code: unescapedSubtext
     };
   };
 
@@ -129,7 +120,7 @@ const QuestionsPage: React.FC = () => {
           return {
             ...question,
             parsedHeader,
-            parsedSubtext,  // Add this line
+            parsedSubtext,
             options: parsedOptions
           };
         });
@@ -145,10 +136,18 @@ const QuestionsPage: React.FC = () => {
     fetchQuestions();
   }, [topicId]);
 
+  // Reset chatbot when question changes
+  useEffect(() => {
+    setIsChatbotOpen(false);
+    setChatbotMessages([]);
+  }, [currentQuestionIndex]);
+
   const handleQuestionChange = (index: number) => {
     setCurrentQuestionIndex(index);
     setSelectedOptionId(null);
     setIsCorrect(null);
+    setIsChatbotOpen(false);
+    setChatbotMessages([]);
   };
 
   const handleOptionSelect = (optionId: number) => {
@@ -209,7 +208,6 @@ const QuestionsPage: React.FC = () => {
     setChatbotMessages((prev) => [...prev, userMessage]);
 
     try {
-      // Send the user's message and conversation history to the backend
       const response = await fetch("http://localhost:5004/api/chatbot", {
         method: "POST",
         headers: {
@@ -229,8 +227,6 @@ const QuestionsPage: React.FC = () => {
       }
 
       const data = await response.json();
-
-      // Update the conversation history with the backend's response
       setChatbotMessages(data.conversation_history);
     } catch (error) {
       console.error("Error sending message to chatbot:", error);
@@ -248,8 +244,9 @@ const QuestionsPage: React.FC = () => {
   const handleChatbotButtonClick = async () => {
     const newChatbotOpenState = !isChatbotOpen;
     setIsChatbotOpen(newChatbotOpenState);
+    setChatbotMessages([]);
 
-    if (newChatbotOpenState && chatbotMessages.length === 0) {
+    if (newChatbotOpenState) {
       const currentQuestion = questions[currentQuestionIndex];
       const questionContext = `I need help with this question: ${currentQuestion.header}. ${currentQuestion.subtext} Here are the answer choices: ${currentQuestion.options
         .map((option) => option.option_text)
@@ -304,7 +301,7 @@ const QuestionsPage: React.FC = () => {
           <button className="absolute bottom-5 left-5">🚪 Log Out</button>
         </Link>
         <button
-            onClick={() => router.back()} // Navigate to the previous page
+            onClick={() => router.back()}
             className="block text-left bg-gray-200 text-black px-2 py-1 rounded hover:bg-gray-300 text-sm mt-4"
           >
             🔙 Previous Topic
@@ -336,11 +333,8 @@ const QuestionsPage: React.FC = () => {
 
         {/* Current Question */}
         <div className="border p-5 rounded-lg shadow-md">
-          {/* Render question text */}
           <h3 className="text-xl font-bold mb-2">{parsedHeader.text}</h3>
           
-          {/* <p className="text-gray-600 mb-4">{currentQuestion.subtext}</p> */}
-
           <div className="text-gray-600 mb-4">
             {currentQuestion.parsedSubtext?.text && (
               <p>{currentQuestion.parsedSubtext?.text}</p>
@@ -356,7 +350,6 @@ const QuestionsPage: React.FC = () => {
             )}
           </div>
           
-          {/* Render code block if exists */}
           {parsedHeader.code && (
             <div className="mb-4">
               <pre className="bg-gray-100 p-4 rounded-md overflow-x-auto text-sm font-mono">
