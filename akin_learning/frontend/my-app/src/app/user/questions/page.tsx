@@ -209,6 +209,7 @@ const QuestionsPage: React.FC = () => {
     setChatbotMessages((prev) => [...prev, userMessage]);
 
     try {
+      // Send the user's message and conversation history to the backend
       const response = await fetch("http://localhost:5004/api/chatbot", {
         method: "POST",
         headers: {
@@ -216,7 +217,10 @@ const QuestionsPage: React.FC = () => {
         },
         body: JSON.stringify({
           message: message,
-          conversation_history: [...chatbotMessages, userMessage],
+          conversation_history: chatbotMessages.map((msg) => ({
+            role: msg.role,
+            content: msg.content,
+          })),
         }),
       });
 
@@ -225,6 +229,8 @@ const QuestionsPage: React.FC = () => {
       }
 
       const data = await response.json();
+
+      // Update the conversation history with the backend's response
       setChatbotMessages(data.conversation_history);
     } catch (error) {
       console.error("Error sending message to chatbot:", error);
