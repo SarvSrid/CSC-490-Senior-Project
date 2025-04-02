@@ -6,7 +6,8 @@ node_modules
 __pycache__
 *.pyc
 .venv/
-/akin_learning/backend/routes/config/
+akin_learning/backend/routes/config/client_secret.json
+akin_learning/backend/routes/config/db_config.ini
 pyvenv.cfg
 
 # Python

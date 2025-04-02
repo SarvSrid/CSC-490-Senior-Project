@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Cookies from "js-cookie";
 
 export default function SignInSignUp() {
-  const router = useRouter();
+  // const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("");
   const [showPopup, setShowPopup] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -33,43 +33,55 @@ export default function SignInSignUp() {
     };
   }, []);
 
-  const handleMockLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setErrorMessage(null); // Clear any previous error messages
 
-    try {
-      // Simulate a login request (replace with actual API call if needed)
-      if (username === "user" && password === "user123") {
-        // Save user data to cookies
-        Cookies.set(
-          "user",
-          JSON.stringify({ id: "1", name: username, email: `${username}@example.com` }), // Ensure id is set
-          { expires: 1 }
-        );
+    const response = await fetch("http://localhost:5000/auth/login", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        email,
+        password
+      })
+    });
 
-        // Redirect to the dashboard
-        router.push("/user/dashboard");
-      } else {
-        throw new Error("Invalid username or password");
-      }
-    } catch (error) {
-      setErrorMessage((error as Error).message);
+     const data = await response.json();
+    if (response.ok) {
+      alert("Login successful!");
+    } else {
+      alert(`Login failed: ${data.message}`);
     }
   };
 
-  const handleSignUp = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // Show the popup
-    setShowPopup(true);
-    // Hide the popup after 3 seconds
-    setTimeout(() => setShowPopup(false), 3000);
+    const response = await fetch("http://localhost:5000/auth/signup", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        username,
+        email,
+        password
+      })
+    });
+
+    const data = await response.json();
+    if (response.ok) {
+      alert("Signup successful!");
+    } else {
+      alert(`Signup failed: ${data.error}`);
+    }
+    // // Show the popup
+    // setShowPopup(true);
+    // // Hide the popup after 3 seconds
+    // setTimeout(() => setShowPopup(false), 3000);
   };
 
   return (
     <div className="container" id="container">
       {/* Sign In Form (Left Panel) */}
       <div className="form-container sign-in-container">
-        <form onSubmit={handleMockLogin}>
+        <form onSubmit={handleLogin}>
           <h1>Welcome Back!</h1>
           <p className="p2">Enter your username and password to sign in.</p>
           {errorMessage && <p className="error-message">{errorMessage}</p>}
@@ -90,12 +102,12 @@ export default function SignInSignUp() {
           <a className="forgot-password" href="/auth/signin/forgotpassword">
             Forgot your password?
           </a>
+          <a href="http://localhost:5000/api/google/send" className="btn primary-btn">
+            Sign In with Google
+          </a>
           <button type="submit" className="btn primary-btn">
             Sign In
           </button>
-          {/* <a href="/login/google" className="btn primary-btn">
-            Sign In with Google
-          </a> */}
         </form>
       </div>
 
@@ -105,17 +117,34 @@ export default function SignInSignUp() {
           <h1>Create Your Account</h1>
           <p className="p2">Fill in the details below to get started.</p>
           <div className="form-row">
-            <input type="text" placeholder="First Name" required />
-            <input type="text" placeholder="Last Name" required />
+
+            <input
+                type="email"
+                placeholder="Email Address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+            />
           </div>
           <div className="form-row">
-            <input type="text" placeholder="Contact No" required />
-            <input type="email" placeholder="Email Address" required />
+            <input
+            type="text"
+            placeholder="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+            />
+            <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            />
           </div>
-          <div className="form-row">
-            <input type="text" placeholder="Username" required />
-            <input type="password" placeholder="Password" required />
-          </div>
+          <a href="http://localhost:5000/api/google/send" className="btn primary-btn">
+            Sign Up with Google
+          </a>
           <button type="submit" className="btn primary-btn">
             Sign Up
           </button>
