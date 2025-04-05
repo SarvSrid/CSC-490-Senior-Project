@@ -17,6 +17,8 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import Cookies from "js-cookie";
+import QuestionCard from "./QuestionCard"; // adjust the path as needed
+
 
 // ----------------------
 // ProfileDropdown Component
@@ -52,8 +54,7 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-    return () =>
-      document.removeEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isProfileOpen, closeProfile, buttonRef]);
 
   if (!isProfileOpen) return null;
@@ -76,7 +77,7 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
       </div>
       <div className="p-2">
         <button
-          onClick={() => router.push('/user/settings/account')}
+          onClick={() => router.push("/user/settings/account")}
           className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${isDarkMode ? "text-white hover:bg-gray-700" : "hover:bg-gray-100"
             }`}
         >
@@ -84,7 +85,7 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
           Edit Profile
         </button>
         <button
-          onClick={() => router.push('/user/settings')}
+          onClick={() => router.push("/user/settings")}
           className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${isDarkMode ? "text-white hover:bg-gray-700" : "hover:bg-gray-100"
             }`}
         >
@@ -114,28 +115,10 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
   );
 };
 
-// ----------------------
-// TypingIndicator Component
-// ----------------------
-const TypingIndicator: React.FC = () => (
-  <div className="flex space-x-1">
-    <span
-      className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"
-      style={{ animationDelay: "0s" }}
-    ></span>
-    <span
-      className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"
-      style={{ animationDelay: "0.2s" }}
-    ></span>
-    <span
-      className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"
-      style={{ animationDelay: "0.4s" }}
-    ></span>
-  </div>
-);
+
 
 // ----------------------
-// Interfaces for Questions (Old Page)
+// Interfaces for Questions
 // ----------------------
 interface Option {
   id: number;
@@ -147,7 +130,8 @@ interface Question {
   header: string;
   subtext: string;
   options: Option[];
-  answered_correctly: boolean;
+  answered_correctly?: boolean | null;
+  selected_option?: number | null;
 }
 interface ChatbotMessage {
   role: "user" | "assistant";
@@ -156,13 +140,12 @@ interface ChatbotMessage {
 }
 
 // ----------------------
-// Main QuestionsPage Component (Merged)
+// Main QuestionsPage Component (Survey Layout with Integrated Chatbot)
 // ----------------------
 const QuestionsPage: React.FC = () => {
   const router = useRouter();
   const pathname = usePathname() ?? "";
   const searchParams = useSearchParams();
-  // Fetch questions using topic_id – ensure your URL includes ?topic_id=1
   const topic_id = searchParams ? searchParams.get("topic_id") : null;
 
   // Theme, profile, and sidebar state
@@ -171,19 +154,58 @@ const QuestionsPage: React.FC = () => {
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
   const profileButtonRef = useRef<HTMLButtonElement | null>(null);
 
-  // Question and Answer state
+  // Question state
   const [questions, setQuestions] = useState<Question[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOptionId, setSelectedOptionId] = useState<number | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
 
-  // Chatbot state
-  const [isChatbotOpen, setIsChatbotOpen] = useState(false);
+  // Chatbot state (integrated into main content)
   const [chatbotMessages, setChatbotMessages] = useState<ChatbotMessage[]>([]);
   const [isChatbotLoading, setIsChatbotLoading] = useState(false);
 
-  // Sidebar navigation items
+  // Additional state for chat input
+  const [input, setInput] = useState("");
+  const textAreaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Refs for question indicators.
+  const indicatorRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
+  // Auto-scroll active indicator into view.
+  // Create a ref to hold the previous index.
+  const prevIndexRef = useRef(currentQuestionIndex);
+
+  useEffect(() => {
+    let targetIndex: number;
+
+    if (currentQuestionIndex > prevIndexRef.current) {
+      // Moving forward: scroll to current index + 4.
+      targetIndex = currentQuestionIndex + 4;
+      if (targetIndex >= indicatorRefs.current.length) {
+        targetIndex = indicatorRefs.current.length - 1;
+      }
+    } else if (currentQuestionIndex < prevIndexRef.current) {
+      // Moving backward: scroll to current index - 4.
+      targetIndex = currentQuestionIndex - 4;
+      if (targetIndex < 0) {
+        targetIndex = 0;
+      }
+    } else {
+      // No change, keep current.
+      targetIndex = currentQuestionIndex;
+    }
+
+    indicatorRefs.current[targetIndex]?.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+      inline: "nearest",
+    });
+
+    prevIndexRef.current = currentQuestionIndex;
+  }, [currentQuestionIndex]);
+
+  // Sidebar navigation items.
   const menuItems = [
     { icon: Home, label: "Home", path: "/user/dashboard" },
     {
@@ -196,11 +218,9 @@ const QuestionsPage: React.FC = () => {
     { icon: Cpu, label: "AI Tutor", path: "/user/chatbot" },
     { icon: Settings, label: "Settings", path: "/user/settings" },
   ];
-  const bottomMenuItems = [
-    { icon: LogOut, label: "Log Out", path: "/auth/signin/signin1" },
-  ];
+  const bottomMenuItems = [{ icon: LogOut, label: "Log Out", path: "/auth/signin/signin1" }];
 
-  // Fetch questions from API using topic_id
+  // Fetch questions from API using topic_id.
   useEffect(() => {
     if (!topic_id) {
       console.error("topic_id is missing");
@@ -214,7 +234,11 @@ const QuestionsPage: React.FC = () => {
           throw new Error("Failed to fetch questions");
         }
         const data = await response.json();
-        setQuestions(data);
+        // Filter the questions so that only those with a matching topic_id are kept.
+        const filteredQuestions = data.filter(
+          (q: { topic_id: number }) => q.topic_id === Number(topic_id)
+        );
+        setQuestions(filteredQuestions);
       } catch (error) {
         console.error("Error fetching questions:", error);
       } finally {
@@ -222,20 +246,27 @@ const QuestionsPage: React.FC = () => {
       }
     };
 
+
+
     fetchQuestions();
   }, [topic_id]);
 
+  // When changing questions, load saved selection if any.
   const handleQuestionChange = (index: number) => {
     if (index >= 0 && index < questions.length) {
       setCurrentQuestionIndex(index);
-      setSelectedOptionId(null);
-      setIsCorrect(null);
-      setIsChatbotOpen(false);
+      const savedOption = questions[index].selected_option ?? null;
+      setSelectedOptionId(savedOption);
+      setIsCorrect(
+        typeof questions[index].answered_correctly === "boolean"
+          ? questions[index].answered_correctly
+          : null
+      );
     }
   };
 
+  // Prevent rapid navigation.
   const [isNavigating, setIsNavigating] = useState(false);
-
   const handleNav = (newIndex: number) => {
     if (isNavigating) return;
     setIsNavigating(true);
@@ -243,15 +274,12 @@ const QuestionsPage: React.FC = () => {
     setTimeout(() => setIsNavigating(false), 300);
   };
 
-  const handleOptionSelect = (option: string, questionIndex: number) => {
-    setSelectedOptionId(Number(option));
+  const handleOptionSelect = (optionId: number) => {
+    setSelectedOptionId(optionId);
   };
 
-  // Submit Question Check Part – now displays result on the card and does not auto-advance
+  // Submit answer, update UI, and trigger chatbot help if needed.
   const handleSubmit = async () => {
-    console.log("Submitted answer for question", currentQuestionIndex, {
-      answer: selectedOptionId,
-    });
     if (selectedOptionId === null) {
       alert("Please select an option before submitting.");
       return;
@@ -262,12 +290,8 @@ const QuestionsPage: React.FC = () => {
         `http://localhost:5003/api/questions/${currentQuestion.id}/answer`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            selected_option_id: selectedOptionId,
-          }),
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ selected_option_id: selectedOptionId }),
         }
       );
       if (!response.ok) {
@@ -275,41 +299,67 @@ const QuestionsPage: React.FC = () => {
       }
       const result = await response.json();
       setIsCorrect(result.is_correct);
-      setQuestions((prevQuestions) =>
-        prevQuestions.map((question) =>
-          question.id === currentQuestion.id
-            ? { ...question, answered_correctly: result.is_correct }
-            : question
+      setQuestions((prev) =>
+        prev.map((q) =>
+          q.id === currentQuestion.id
+            ? { ...q, answered_correctly: result.is_correct, selected_option: selectedOptionId }
+            : q
         )
       );
+      if (result.is_correct) {
+        // Check if this is the last question.
+        if (currentQuestionIndex < questions.length - 1) {
+          setTimeout(() => {
+            handleQuestionChange(currentQuestionIndex + 1);
+            setSelectedOptionId(null);
+            setIsCorrect(null);
+          }, 500);
+        } else {
+          // If this is the last question, redirect to the topics page.
+          setTimeout(() => {
+            router.back();
+          }, 1500); // 1500 milliseconds = 1.5 second delay
+        }
+      } else {
+        const explanationContext = `Help me understand this question: ${currentQuestion.header}. ${currentQuestion.subtext}. The options are: ${currentQuestion.options
+          .map((o) => o.option_text)
+          .join(", ")}.`;
+        handleChatbotMessageSubmit(explanationContext);
+      }
     } catch (error) {
       console.error("Error submitting answer:", error);
     }
   };
 
-  // Chatbot Functions
+  // ----------------------
+  // TypingIndicator Component
+  // ----------------------
+  const TypingIndicator: React.FC = () => (
+    <div className="flex space-x-1 pt-2">
+      <span
+        className={`w-2 h-2 bg-transparent rounded-full animate-bounce border ${isDarkMode ? "border-gray-600" : "border-gray-300"}`}
+        style={{ animationDelay: "0s" }}
+      ></span>
+      <span
+        className={`w-2 h-2 bg-transparent rounded-full animate-bounce border ${isDarkMode ? "border-gray-600" : "border-gray-300"}`}
+        style={{ animationDelay: "0.2s" }}
+      ></span>
+      <span
+        className={`w-2 h-2 bg-transparent rounded-full animate-bounce border ${isDarkMode ? "border-gray-600" : "border-gray-300"}`}
+        style={{ animationDelay: "0.4s" }}
+      ></span>
+    </div>
+  );
+
+  // Chatbot Functions.
   const handleChatbotMessageSubmit = async (message: string) => {
     if (!message.trim()) return;
     setIsChatbotLoading(true);
-
-    const userMessage: ChatbotMessage = {
-      role: "user",
-      content: message,
-      timestamp: new Date().toLocaleTimeString(),
-    };
-
-    setChatbotMessages((prev) => [...prev, userMessage]);
-
     try {
       const response = await fetch("http://localhost:5004/api/chatbot", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          message: message,
-          conversation_history: [...chatbotMessages, userMessage],
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message, conversation_history: chatbotMessages }),
       });
       if (!response.ok) {
         throw new Error("Failed to send message to chatbot");
@@ -329,94 +379,101 @@ const QuestionsPage: React.FC = () => {
     }
   };
 
-  const handleChatbotButtonClick = async () => {
-    const newChatbotOpenState = !isChatbotOpen;
-    setIsChatbotOpen(newChatbotOpenState);
 
-    if (newChatbotOpenState && chatbotMessages.length === 0 && questions.length > 0) {
-      const currentQuestion = questions[currentQuestionIndex];
-      const questionContext = `I need help with this question: ${currentQuestion.header}. ${currentQuestion.subtext} Options: ${currentQuestion.options
-        .map((o) => o.option_text)
-        .join(", ")}`;
-      setIsChatbotLoading(true);
-      try {
-        const response = await fetch("http://localhost:5004/api/chatbot", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            message: questionContext,
-            conversation_history: [],
-          }),
-        });
-        const data = await response.json();
-        setChatbotMessages(data.conversation_history);
-      } catch (error) {
-        console.error("Error initializing chatbot:", error);
-      } finally {
-        setIsChatbotLoading(false);
-      }
+  const handleSendMessage = () => {
+    if (input.trim() !== "") {
+      setChatbotMessages((prev) => [
+        ...prev,
+        { role: "user", content: input, timestamp: new Date().toLocaleTimeString() },
+      ]);
+      handleChatbotMessageSubmit(input);
+      setInput("");
     }
   };
 
+  // Single toggleTheme function.
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode);
     document.body.classList.toggle("dark-mode");
   };
 
+  // Single toggleProfile function.
   const toggleProfile = () => setIsProfileOpen(!isProfileOpen);
-  const toggleSidebar = () => setSidebarCollapsed(!isSidebarCollapsed);
 
-  // Render a question card with main content style using the correct question text from "header"
-  const renderQuestionCard = (index: number) => {
-    const q = questions[index];
-    // For the current question, use selectedOptionId
-    const selectedOption = index === currentQuestionIndex ? selectedOptionId : null;
-    return (
-      <div
-        className={`p-5 rounded-lg shadow-md ${isDarkMode ? "bg-[rgb(31,41,55)] border border-gray-500" : "bg-white"
-          }`}
-      >
-        <h3
-          className={`text-xl font-bold mb-3 ${isDarkMode ? "text-white" : "text-gray-900"
-            }`}
-        >
-          {q.header} {/* Use q.header to show the actual question */}
-        </h3>
-        <div className="space-y-3">
-          {q.options.map((option, optionIndex) => {
-            const isSelected = selectedOption === option.id;
-            return (
-              <div
-                key={optionIndex}
-                onClick={() => handleOptionSelect(option.id.toString(), index)}
-                className={`cursor-pointer p-3 border rounded-full transition-colors ${isSelected
-                  ? "bg-pink-500 border-pink-500 text-white"
-                  : isDarkMode
-                    ? "bg-transparent border-gray-400 text-gray-200 hover:bg-gray-700"
-                    : "bg-transparent border-gray-300 text-gray-700 hover:bg-gray-100"
-                  }`}
-              >
-                {option.option_text}
-              </div>
-            );
-          })}
-        </div>
-        <button
-          onClick={handleSubmit}
-          className="mt-6 bg-pink-500 hover:bg-pink-600 text-white font-bold py-2 px-6 rounded-full transition-colors"
-        >
-          Submit
-        </button>
-        {isCorrect !== null && (
-          <p className={`mt-2 ${isCorrect ? "text-green-500" : "text-red-500"}`}>
-            {isCorrect ? "Correct!" : "Incorrect!"}
-          </p>
-        )}
+
+
+
+
+  // Create a ref for the end of the chat messages.
+  const messageEndRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [chatbotMessages]);
+
+  // Render the integrated chatbot card.
+  const renderChatbotCard = () => (
+    <div
+      className={`bg-transparent rounded-cus p-6 border ${isDarkMode ? "border-gray-600" : "border-gray-300"}`}
+      style={{
+        position: "fixed",
+        bottom: 30,
+        right: 40,
+        height: "780px",
+        width: "400px",
+        zIndex: 20,
+      }}
+    >
+      <div className="w-full mb-6 px-1">
+        <h2 className={`text-3xl font-light text-center mb-2 ${isDarkMode ? "text-white" : "text-gray-600"}`}>
+          AI Tutor
+        </h2>
+        <hr className={`w-full border-t ${isDarkMode ? "border-gray-600" : "border-gray-300"}`} />
       </div>
-    );
-  };
+      <div className="h-100 overflow-y-auto space-y-4 mb-4">
+        {chatbotMessages.map((msg, index) => (
+          <div key={index} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+            <div
+              className={`max-w-xs p-3 rounded-lg ${msg.role === "user"
+                ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white border-gray-300"
+                : "bg-gray-200 text-gray-800"
+                }`}
+            >
+              <p>{msg.content}</p>
+              <p className="text-xs opacity-70 mt-1">{msg.timestamp}</p>
+            </div>
+          </div>
+        ))}
+        {isChatbotLoading && (
+          <div className="flex justify-start">
+            <div className={`text-gray-800 p-2 rounded-lg bg-transparent border ${isDarkMode ? "border-gray-600" : "border-gray-300"}`}>
+              <TypingIndicator />
+            </div>
+          </div>
+        )}
+        <div ref={messageEndRef} />
+      </div>
+      <div className="relative w-full px-3 py-33">
+        <textarea
+          ref={textAreaRef}
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="Need Help?"
+          className={`w-full resize-none border border-gray-300 rounded-full pr-16 pl-1 pt-55 py-1 min-h-[40px] max-h-52 overflow-auto custom-scrollbar ${isDarkMode
+            ? "bg-gray-900 text-white placeholder-gray-400"
+            : "bg-white text-gray-800 placeholder-gray-500"
+            }`}
+          disabled={isChatbotLoading}
+        />
+        <button
+          onClick={handleSendMessage}
+          disabled={isChatbotLoading}
+          className="absolute bottom-11 right-6 bg-pink-500 text-white px-3 py-1 rounded-full"
+        >
+          Send
+        </button>
+      </div>
+    </div>
+  );
 
   if (isLoading) {
     return (
@@ -426,16 +483,13 @@ const QuestionsPage: React.FC = () => {
     );
   }
 
-  const currentQuestion = questions[currentQuestionIndex];
-
   return (
     <div
-      className={`min-h-screen ${isDarkMode ? "bg-[rgb(31,41,55)] text-white" : "bg-white text-black"
-        }`}
+      className={`min-h-screen bg-fixed ${isDarkMode ? "bg-[rgb(31,41,55)] text-white" : "bg-white text-black"}`}
     >
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 h-full ${isSidebarCollapsed ? "w-16" : "w-64"} transition-all duration-300 z-20`}
+        className={`fixed top-0 left-0 h-full ${isSidebarCollapsed ? "w-16" : "w-64"} transition-all duration-300 shadow-md1 z-30`}
         style={{ background: "var(--sidebar-bg)", color: "var(--sidebar-color)" }}
       >
         <nav className="mt-20">
@@ -450,10 +504,7 @@ const QuestionsPage: React.FC = () => {
                     } py-3 rounded-lg transition-colors ${isActive ? "bg-white/20" : "hover:bg-white/10"
                     }`}
                 >
-                  <item.icon
-                    className={`w-6 h-6 ${isSidebarCollapsed ? "" : "mr-4"}`}
-                    fill={isActive ? "currentColor" : "none"}
-                  />
+                  <item.icon className={`w-6 h-6 ${isSidebarCollapsed ? "" : "mr-4"}`} fill={isActive ? "currentColor" : "none"} />
                   {!isSidebarCollapsed && <span className="text-sm">{item.label}</span>}
                 </div>
               </Link>
@@ -465,14 +516,11 @@ const QuestionsPage: React.FC = () => {
               return (
                 <Link key={index} href={item.path}>
                   <div
-                    className={`flex items-center ${isSidebarCollapsed ? "px-4" : "px-6"
-                      } py-3 transition-colors ${isActive ? "bg-white/20" : "hover:bg-white/10"
+                    className={`flex items-center m-2 ${isSidebarCollapsed ? "px-4" : "px-6"
+                      } py-3 rounded-lg transition-colors ${isActive ? "bg-white/20" : "hover:bg-white/10"
                       }`}
                   >
-                    <item.icon
-                      className={`w-6 h-6 ${isSidebarCollapsed ? "" : "mr-4"}`}
-                      fill={isActive ? "currentColor" : "none"}
-                    />
+                    <item.icon className={`w-6 h-6 ${isSidebarCollapsed ? "" : "mr-4"}`} fill={isActive ? "currentColor" : "none"} />
                     {!isSidebarCollapsed && <span className="text-sm">{item.label}</span>}
                   </div>
                 </Link>
@@ -521,173 +569,73 @@ const QuestionsPage: React.FC = () => {
         />
       )}
 
-      {/* Main Content – Questions */}
-      <div
-        className={`${isSidebarCollapsed ? "ml-16" : "ml-64"} transition-all duration-300 pt-20 p-10`}
-      >
-        <div className="w-full mb-8 px-1">
-          
-          <h2
-            className={`text-3xl font-light text-left mb-2 ${isDarkMode ? "text-white" : "text-gray-600"
-              }`}
-          >
+      {/* Main Content – Survey Layout */}
+      <div className={`${isSidebarCollapsed ? "ml-16" : "ml-64"} transition-all duration-300 pt-20 p-10 relative`}>
+        <div className="w-full mb-4 px-1">
+          <h2 className={`text-3xl font-light text-left mb-2 ${isDarkMode ? "text-white" : "text-gray-600"}`}>
             Questions:
           </h2>
-          <hr
-            className={`w-full border-t ${isDarkMode ? "border-gray-600" : "border-gray-300"
-              }`}
-          />
+          <hr className={`w-full border-t ${isDarkMode ? "border-gray-600" : "border-gray-300"}`} />
           <div className="mb-4">
             <button
-              onClick={() => router.back()} // Navigate to the previous page
-              className={`px-1 mt-4 mt-4py-1 text-sm rounded-full transition-colors border 
-                ${isDarkMode
-                  ? "border-gray-600 text-white hover:bg-gray-600"
-                  : "border-gray-300 text-gray-800 hover:bg-gray-300"
-              }`}
-            >
-               <ArrowLeft className="w-10 h-6 rounded-full mr-2 " />
-              
-            </button>
-          </div>
-        </div>
-        {/* Navigation Buttons */}
-        <div className="flex justify-center mb-6">
-          {questions.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => handleQuestionChange(index)}
-              className={`mx-2 px-4 py-2 rounded-full transition-transform duration-200 transform hover:scale-110 ${currentQuestionIndex === index
-                ? "bg-pink-500 text-white"
-                : "bg-gray-200 text-black"
+              onClick={() => router.back()}
+              className={`px-1 mt-4 py-1 text-sm rounded-full transition-colors border ${isDarkMode
+                ? "border-gray-600 text-white hover:bg-gray-600"
+                : "border-gray-300 text-gray-800 hover:bg-gray-300"
                 }`}
             >
-              {index + 1}
+              <ArrowLeft className="w-10 h-6 rounded-full mr-2" />
             </button>
-          ))}
-        </div>
-        {/* Question Card Slider */}
-        <div className="relative flex items-center justify-center">
-          {currentQuestionIndex > 0 && (
-            <div
-              onClick={(e) => {
-                e.stopPropagation();
-                handleNav(currentQuestionIndex - 1);
-              }}
-              className="absolute left-0 cursor-pointer opacity-70 filter blur-sm hover:opacity-100 hover:blur-0 transition-all duration-300"
-              style={{ width: "60%" }}
-            >
-              {renderQuestionCard(currentQuestionIndex - 1)}
-            </div>
-          )}
-          <div
-            className="relative z-10 transition-all duration-300"
-            style={{ width: "80%" }}
-          >
-            {renderQuestionCard(currentQuestionIndex)}
           </div>
-          {currentQuestionIndex < questions.length - 1 && (
-            <div
-              onClick={(e) => {
-                e.stopPropagation();
-                handleNav(currentQuestionIndex + 1);
-              }}
-              className="absolute right-0 cursor-pointer opacity-70 filter blur-sm hover:opacity-100 hover:blur-0 transition-all duration-300"
-              style={{ width: "60%" }}
-            >
-              {renderQuestionCard(currentQuestionIndex + 1)}
+        </div>
+
+        {/* Question Indicators Container */}
+        <div className="w-1/2 mx-auto2 overflow-x-auto custom-scrollbar">
+          <div className="flex space-x-2 pb-2">
+            {questions.map((q, index) => {
+              let indicatorColor = "bg-gray-200 text-black"; // default for unanswered
+              if (q.answered_correctly === true) {
+                indicatorColor = "bg-green-500 text-white";
+              } else if (q.answered_correctly === false) {
+                indicatorColor = "bg-red-500 text-white";
+              }
+              const isActive = currentQuestionIndex === index;
+              return (
+                <button
+                  key={index}
+                  ref={(el) => { indicatorRefs.current[index] = el; }}
+                  onClick={() => handleQuestionChange(index)}
+                  className={`transition-transform duration-200 transform hover:scale-105 ${isActive ? "w-14 h-14 -translate-y-3" : "w-10 h-10"
+                    } rounded-full flex-shrink-0 flex items-center justify-center ${indicatorColor}`}
+                >
+                  {index + 1}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="flex flex-col md:flex-row gap-4 items-start">
+          {!isLoading && questions.length > 0 && (
+
+            <div className="md:w-1/2 w-full" style={{ width: "65%" }}>
+              <QuestionCard
+                q={questions[currentQuestionIndex]}
+                isDarkMode={isDarkMode}
+                selectedOptionId={selectedOptionId}
+                isCorrect={isCorrect}
+                handleOptionSelect={handleOptionSelect}
+                handleSubmit={handleSubmit}
+              />
             </div>
+
           )}
         </div>
       </div>
 
-      {/* Chatbot Sidebar */}
-      {isChatbotOpen && (
-        <div className="fixed right-0 top-0 h-full w-96 bg-white/30 backdrop-blur-sm shadow-lg border-l z-10 flex flex-col">
-          <div className="p-4 border-b flex justify-between items-center bg-blue-500 text-white">
-            <h3 className="text-lg font-bold">Learning Assistant</h3>
-            <button onClick={() => setIsChatbotOpen(false)} className="hover:text-gray-200">
-              ✕
-            </button>
-          </div>
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            {chatbotMessages.map((msg, index) => (
-              <div
-                key={index}
-                className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-              >
-                <div
-                  className={`max-w-xs p-3 rounded-lg ${msg.role === "user"
-                    ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white"
-                    : "bg-gray-200 text-gray-800"
-                    }`}
-                >
-                  <p>{msg.content}</p>
-                  <p className="text-xs opacity-70 mt-1">{msg.timestamp}</p>
-                </div>
-              </div>
-            ))}
-            {isChatbotLoading && (
-              <div className="flex justify-start">
-                <div className="bg-gray-200 text-gray-800 p-3 rounded-lg">
-                  <TypingIndicator />
-                </div>
-              </div>
-            )}
-          </div>
-          <div className="p-4 border-t">
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                const textarea = e.currentTarget.querySelector("textarea");
-                if (textarea && textarea.value.trim()) {
-                  handleChatbotMessageSubmit(textarea.value.trim());
-                  textarea.value = "";
-                }
-              }}
-              className="w-full"
-            >
-              <div className="w-full border border-gray-300 rounded-full overflow-hidden flex flex-col md:flex-row">
-                <textarea
-                  placeholder="Type your question..."
-                  wrap="soft"
-                  className={`w-full p-3 max-h-32 overflow-auto resize-none focus:outline-none transition-all ${isDarkMode ? "bg-gray-800 text-white" : "bg-white text-black"
-                    }`}
-                  disabled={isChatbotLoading}
-                />
-                {/* Divider: vertical on md and up, horizontal on small screens */}
-                <div className="hidden md:block w-px bg-gray-300" />
-                <div className="block md:hidden h-px bg-gray-300" />
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 transition-all duration-200 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 "
-                  disabled={isChatbotLoading}
-                >
-                  Send
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* Fixed Chat Card – integrated chat UI matching reference style */}
+      {renderChatbotCard()}
 
-      {/* Chatbot Toggle Button */}
-      <button
-        onClick={handleChatbotButtonClick}
-        style={{ right: isChatbotOpen ? "400px" : "1rem" }}
-        className="fixed bottom-4 w-16 h-16 rounded-full shadow-lg z-50 text-white flex items-center justify-center transition-all duration-300 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600"
-      >
-        {isChatbotOpen ? (
-          "✕"
-        ) : (
-          <div className="flex flex-col items-center">
-            <span className="text-sm font-bold">AI</span>
-            <span className="text-xs">Tutor</span>
-          </div>
-        )}
-      </button>
-
-      {/* SVG Gradient Definition */}
       <svg width="0" height="0">
         <defs>
           <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">

@@ -184,13 +184,13 @@ const AccountPage: React.FC = () => {
 
     return (
         <div
-            className={`min-h-screen ${isDarkMode ? "bg-gray-800 text-white" : "bg-gray-100 text-black"
+            className={`min-h-screen ${isDarkMode ? "bg-gray-800 text-white" : "bg-white text-black"
                 }`}
         >
             {/* Sidebar */}
             <aside
                 className={`fixed top-0 left-0 h-full ${isSidebarCollapsed ? "w-16" : "w-64"
-                    } transition-all duration-300 z-20`}
+                    } transition-all duration-300 shadow-md1 z-30`}
                 style={{ background: "var(--sidebar-bg)", color: "var(--sidebar-color)" }}
             >
                 <nav className="mt-20">
@@ -259,8 +259,8 @@ const AccountPage: React.FC = () => {
                         ref={profileButtonRef}
                         onClick={toggleProfile}
                         className={`flex items-center px-4 py-2 rounded-full ${isDarkMode
-                                ? "bg-gray-700 hover:bg-gray-600"
-                                : "bg-gray-100 hover:bg-gray-200"
+                            ? "bg-gray-700 hover:bg-gray-600"
+                            : "bg-gray-100 hover:bg-gray-200"
                             } transition-colors`}
                     >
                         <User className="w-8 h-8 rounded-full mr-2" />
@@ -306,8 +306,8 @@ const AccountPage: React.FC = () => {
                         <Link href="/user/settings" legacyBehavior>
                             <button
                                 className={`px-3 py-1 text-sm rounded-full transition-colors hover:bg-gray-200 border ${isDarkMode
-                                        ? "border-gray-600 text-white hover:bg-gray-600"
-                                        : "border-gray-300 text-gray-800 hover:bg-gray-300"
+                                    ? "border-gray-600 text-white hover:bg-gray-600"
+                                    : "border-gray-300 text-gray-800 hover:bg-gray-300"
                                     }`}
                             >
                                 <span className="bg-gradient-to-b from-[rgba(0,170,255,1)] via-[rgba(199,108,253,0.95)] to-[rgba(255,90,252,0.89)] bg-clip-text text-transparent">
@@ -399,8 +399,8 @@ const AccountPage: React.FC = () => {
                         <button
                             onClick={openDeletePopup}
                             className={`px-6 py-3 rounded-full border transition-colors hover:bg-gray-200 ${isDarkMode
-                                    ? "border-gray-600 text-white hover:bg-gray-600"
-                                    : "border-gray-300 text-gray-800 hover:bg-gray-300"
+                                ? "border-gray-600 text-white hover:bg-gray-600"
+                                : "border-gray-300 text-gray-800 hover:bg-gray-300"
                                 }`}
                         >
                             <span className="bg-gradient-to-b from-[rgba(0,170,255,1)] via-[rgba(199,108,253,0.95)] to-[rgba(255,90,252,0.89)] bg-clip-text text-transparent">
@@ -451,8 +451,8 @@ const AccountPage: React.FC = () => {
                             <button
                                 onClick={handleDeleteAccount}
                                 className={`px-6 py-2 rounded transition-colors font-medium ${isDarkMode
-                                        ? "bg-white text-black hover:bg-gray-200"
-                                        : "bg-black text-white hover:bg-gray-800"
+                                    ? "bg-white text-black hover:bg-gray-200"
+                                    : "bg-black text-white hover:bg-gray-800"
                                     }`}
                             >
                                 CONFIRM

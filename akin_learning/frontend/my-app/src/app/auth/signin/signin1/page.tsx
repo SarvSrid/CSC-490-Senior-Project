@@ -11,7 +11,7 @@ export default function SignInSignUp() {
   const [showPopup, setShowPopup] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Set up the sliding overlay behavior after the component mounts
+  // Set up the sliding overlay behavior after the component mounts.
   useEffect(() => {
     const container = document.getElementById("container");
     const signUpButton = document.getElementById("signUp");
@@ -43,10 +43,9 @@ export default function SignInSignUp() {
         // Save user data to cookies
         Cookies.set(
           "user",
-          JSON.stringify({ id: "1", name: username, email: `${username}@example.com` }), // Ensure id is set
+          JSON.stringify({ id: "1", name: username, email: `${username}@example.com` }),
           { expires: 1 }
         );
-
         // Redirect to the dashboard
         router.push("/user/dashboard");
       } else {
@@ -73,6 +72,7 @@ export default function SignInSignUp() {
           <h1>Welcome Back!</h1>
           <p className="p2">Enter your username and password to sign in.</p>
           {errorMessage && <p className="error-message">{errorMessage}</p>}
+
           <input
             type="text"
             placeholder="Username"
@@ -87,15 +87,20 @@ export default function SignInSignUp() {
             onChange={(e) => setPassword(e.target.value)}
             required
           />
-          <a className="forgot-password" href="/auth/signin/forgotpassword">
-            Forgot your password?
+          {/* Google Sign In Link */}
+          <a
+            href="/auth/google"
+            className="underline text-black pt-4 block mb-2"
+          >
+            Sign In with Google
           </a>
+
           <button type="submit" className="btn primary-btn">
             Sign In
           </button>
-          {/* <a href="/login/google" className="btn primary-btn">
-            Sign In with Google
-          </a> */}
+          <a className="forgot-password" href="/auth/signin/forgotpassword">
+            Forgot your password?
+          </a>
         </form>
       </div>
 
@@ -104,6 +109,7 @@ export default function SignInSignUp() {
         <form onSubmit={handleSignUp}>
           <h1>Create Your Account</h1>
           <p className="p2">Fill in the details below to get started.</p>
+
           <div className="form-row">
             <input type="text" placeholder="First Name" required />
             <input type="text" placeholder="Last Name" required />
@@ -116,6 +122,13 @@ export default function SignInSignUp() {
             <input type="text" placeholder="Username" required />
             <input type="password" placeholder="Password" required />
           </div>
+          {/* Google Sign Up Link */}
+          <a
+            href="/auth/google"
+            className="underline text-black pt-4 block mb-2"
+          >
+            Sign Up with Google
+          </a>
           <button type="submit" className="btn primary-btn">
             Sign Up
           </button>

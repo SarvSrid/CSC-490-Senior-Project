@@ -88,29 +88,34 @@ def answer_question(question_id):
     """
     data = request.get_json()
 
-    # Fetch the question and correct answer
+    # Fetch the question and its correct option.
     question = MainQuestion.query.get_or_404(question_id)
     correct_option = QuestionOption.query.filter_by(question_id=question_id, is_correct=True).first()
 
-    # Check if the user's answer is correct
+    # Determine if the user's answer is correct.
     is_correct = (data['selected_option_id'] == correct_option.id)
 
-    # Update progress
+    # Retrieve or create a progress record for the user and topic.
     progress = Progress.query.filter_by(user_id=TEST_USER_ID, topic_id=question.topic_id).first()
     if not progress:
         progress = Progress(
             user_id=TEST_USER_ID,
             topic_id=question.topic_id,
-            active_questions=0,
+            active_questions=0,  # Ideally, this should be updated to the total number of questions for this topic.
             completed_questions=0
         )
         db.session.add(progress)
 
     if is_correct:
-        progress.completed_questions += 1
-        question.progress = 100  # Mark question as fully completed
+        # Dynamically determine the total number of questions for this topic.
+        total_questions = MainQuestion.query.filter_by(topic_id=question.topic_id, user_id=TEST_USER_ID).count()
+        # Only increment if we haven't reached the total.
+        if progress.completed_questions < total_questions:
+            progress.completed_questions += 1
+        question.progress = 100  # Mark question as fully completed.
     else:
-        question.progress = max(question.progress - 25, 0)  # Deduct progress for incorrect answer
+        # Deduct progress for an incorrect answer.
+        question.progress = max(question.progress - 25, 0)
 
     db.session.commit()
 
@@ -119,6 +124,7 @@ def answer_question(question_id):
         'correct_option_id': correct_option.id,
         'progress': progress.percentage
     }), 200
+
 
 
 # Run the Flask app

@@ -146,13 +146,13 @@ function SettingsPage() {
 
   return (
     <div
-      className={`min-h-screen ${isDarkMode ? "bg-gray-800 text-white" : "bg-gray-100 text-black"
+      className={`min-h-screen ${isDarkMode ? "bg-gray-800 text-white" : "bg-white text-black"
         }`}
     >
       {/* Sidebar */}
       <aside
         className={`fixed top-0 left-0 h-full ${isSidebarCollapsed ? "w-16" : "w-64"
-          } transition-all duration-300 z-20`}
+          } transition-all duration-300 shadow-md1 z-30`}
         style={{ background: "var(--sidebar-bg)", color: "var(--sidebar-color)" }}
       >
         <nav className="mt-20">
@@ -221,8 +221,8 @@ function SettingsPage() {
             ref={profileButtonRef}
             onClick={toggleProfile}
             className={`flex items-center px-4 py-2 rounded-full ${isDarkMode
-                ? "bg-gray-700 hover:bg-gray-600"
-                : "bg-gray-100 hover:bg-gray-200"
+              ? "bg-gray-700 hover:bg-gray-600"
+              : "bg-gray-100 hover:bg-gray-200"
               } transition-colors`}
           >
             <User className="w-8 h-8 rounded-full mr-2" />
@@ -253,8 +253,8 @@ function SettingsPage() {
         {/* Big Card Container for Settings Options */}
         <div
           className={`max-w-2xl mx-auto p-8 rounded-xl transition-colors ${isDarkMode
-              ? "bg-transparent border border-gray-600 text-white"
-              : "bg-transparent border border-gray-300 text-black"
+            ? "bg-transparent border border-gray-600 text-white"
+            : "bg-transparent border border-gray-300 text-black"
             }`}
         >
           <div className="space-y-6">

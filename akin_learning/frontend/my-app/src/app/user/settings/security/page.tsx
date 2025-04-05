@@ -200,13 +200,13 @@ const SecurityPage: React.FC = () => {
 
     return (
         <div
-            className={`min-h-screen ${isDarkMode ? "bg-gray-800 text-white" : "bg-gray-100 text-black"
+            className={`min-h-screen ${isDarkMode ? "bg-gray-800 text-white" : "bg-white text-black"
                 }`}
         >
             {/* Sidebar */}
             <aside
                 className={`fixed top-0 left-0 h-full ${isSidebarCollapsed ? "w-16" : "w-64"
-                    } transition-all duration-300 z-20`}
+                    } transition-all duration-300 shadow-md1 z-30`}
                 style={{ background: "var(--sidebar-bg)", color: "var(--sidebar-color)" }}
             >
                 <nav className="mt-20">

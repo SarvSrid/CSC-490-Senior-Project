@@ -77,11 +77,7 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
     >
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center">
-          <img
-            src="https://via.placeholder.com/60"
-            alt="Avatar"
-            className="w-12 h-12 rounded-full"
-          />
+          <User className="w-8 h-8 rounded-full mr-2" />
           <div className="ml-3">
             <h3 className="font-medium">User123</h3>
             <p className="text-sm text-gray-500">ID: 1234567</p>
@@ -210,12 +206,12 @@ const SubjectsPage: React.FC = () => {
 
   return (
     <div
-      className={`min-h-screen ${isDarkMode ? "bg-gray-800 text-white" : "bg-gray-100 text-black"
+      className={`min-h-screen ${isDarkMode ? "bg-gray-800 text-white" : "bg-white text-black"
         }`}
     >
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 h-full ${isSidebarCollapsed ? "w-16" : "w-64"} transition-all duration-300 z-20`}
+        className={`fixed top-0 left-0 h-full ${isSidebarCollapsed ? "w-16" : "w-64"} transition-all duration-300 shadow-md1 z-30`}
         style={{ background: "var(--sidebar-bg)", color: "var(--sidebar-color)" }}
       >
         <nav className="mt-20">
@@ -280,11 +276,7 @@ const SubjectsPage: React.FC = () => {
             className={`flex items-center px-4 py-2 rounded-full ${isDarkMode ? "bg-gray-700 hover:bg-gray-600" : "bg-gray-100 hover:bg-gray-200"
               } transition-colors`}
           >
-            <img
-              src="https://via.placeholder.com/40"
-              alt="User Avatar"
-              className="w-8 h-8 rounded-full mr-2"
-            />
+            <User className="w-8 h-8 rounded-full mr-2" />
             <span className="font-medium">User123</span>
             <ChevronDown className="w-4 h-4 ml-2" />
           </button>
@@ -361,8 +353,8 @@ const SubjectsPage: React.FC = () => {
                 <Link href={`/user/questions?topic_id=${topic.id}`} legacyBehavior>
                   <a
                     className={`px-4 py-2 rounded-full border transition-colors ${isDarkMode
-                        ? "border-gray-600 text-white hover:bg-gray-600"
-                        : "border-gray-300 text-gray-800 hover:bg-gray-300"
+                      ? "border-gray-600 text-white hover:bg-gray-600"
+                      : "border-gray-300 text-gray-800 hover:bg-gray-300"
                       }`}
                   >
                     View Questions

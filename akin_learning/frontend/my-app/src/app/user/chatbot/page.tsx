@@ -31,17 +31,43 @@ const ChatbotPage: React.FC = () => {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // Reference for the auto-expanding text area
+  // Refs for textarea and auto-scroll
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
+  const messageEndRef = useRef<HTMLDivElement>(null);
 
-  // Authentication effect
+  // ----------------------
+  // TypingIndicator Component
+  // ----------------------
+  const TypingIndicator: React.FC = () => (
+    <div className="flex space-x-1 pt-2">
+      <span
+        className={`w-2 h-2 bg-transparent rounded-full animate-bounce border ${isDarkMode ? "border-gray-600" : "border-gray-300"}`}
+        style={{ animationDelay: "0s" }}
+      ></span>
+      <span
+        className={`w-2 h-2 bg-transparent rounded-full animate-bounce border ${isDarkMode ? "border-gray-600" : "border-gray-300"}`}
+        style={{ animationDelay: "0.2s" }}
+      ></span>
+      <span
+        className={`w-2 h-2 bg-transparent rounded-full animate-bounce border ${isDarkMode ? "border-gray-600" : "border-gray-300"}`}
+        style={{ animationDelay: "0.4s" }}
+      ></span>
+    </div>
+  );
+
+
+  // Auto scroll to bottom when messages update
+  useEffect(() => {
+    messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  // Authentication effect: redirect if no user found
   useEffect(() => {
     const userData = Cookies.get("user");
     if (!userData) {
       router.push("/auth/signin/signin1");
     } else {
-      const parsedUser = JSON.parse(userData);
-      setUser(parsedUser);
+      setUser(JSON.parse(userData));
     }
   }, [router]);
 
@@ -50,7 +76,7 @@ const ChatbotPage: React.FC = () => {
     document.body.classList.toggle("dark-mode");
   };
 
-  const profileButtonRef = useRef<HTMLButtonElement | null>(null);
+  const profileButtonRef = useRef<HTMLButtonElement>(null);
   const toggleProfile = () => setIsProfileOpen(!isProfileOpen);
 
   // Sidebar menu items
@@ -63,7 +89,7 @@ const ChatbotPage: React.FC = () => {
     { icon: LogOut, label: "Log Out", path: "/auth/signin/signin1" },
   ];
 
-  // Profile dropdown component
+  // Profile Dropdown Component
   const ProfileDropdown: React.FC<{
     isProfileOpen: boolean;
     isDarkMode: boolean;
@@ -72,7 +98,6 @@ const ChatbotPage: React.FC = () => {
     buttonRef: React.RefObject<HTMLButtonElement | null>;
   }> = ({ isProfileOpen, isDarkMode, toggleTheme, closeProfile, buttonRef }) => {
     const dropdownRef = useRef<HTMLDivElement>(null);
-
     useEffect(() => {
       const handleClickOutside = (event: MouseEvent) => {
         if (
@@ -84,23 +109,16 @@ const ChatbotPage: React.FC = () => {
           closeProfile();
         }
       };
-
       document.addEventListener("mousedown", handleClickOutside);
-      return () => {
-        document.removeEventListener("mousedown", handleClickOutside);
-      };
+      return () => document.removeEventListener("mousedown", handleClickOutside);
     }, [isProfileOpen, closeProfile, buttonRef]);
-
     if (!isProfileOpen) return null;
-
     return (
       <div
         ref={dropdownRef}
-        className={`fixed right-4 mt-16 w-64 ${
-          isDarkMode ? "bg-gray-800 text-white" : "bg-gray-100 text-black"
-        } rounded-xl shadow-lg border ${
-          isDarkMode ? "border-gray-700" : "border-gray-200"
-        } z-50`}
+        className={`fixed right-4 mt-16 w-64 ${isDarkMode ? "bg-gray-800 text-white" : "bg-gray-100 text-black"
+          } rounded-xl shadow-lg border ${isDarkMode ? "border-gray-700" : "border-gray-200"
+          } z-50`}
       >
         <div className="p-4 border-b border-gray-200">
           <div className="flex items-center">
@@ -114,18 +132,16 @@ const ChatbotPage: React.FC = () => {
         <div className="p-2">
           <button
             onClick={() => router.push("/user/settings/account")}
-            className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
-              isDarkMode ? "text-white hover:bg-gray-700" : "hover:bg-gray-100"
-            }`}
+            className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${isDarkMode ? "text-white hover:bg-gray-700" : "hover:bg-gray-100"
+              }`}
           >
             <User className="inline w-5 h-5 mr-3" />
             Edit Profile
           </button>
           <button
             onClick={() => router.push("/user/settings")}
-            className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
-              isDarkMode ? "text-white hover:bg-gray-700" : "hover:bg-gray-100"
-            }`}
+            className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${isDarkMode ? "text-white hover:bg-gray-700" : "hover:bg-gray-100"
+              }`}
           >
             <Settings className="inline w-5 h-5 mr-3" />
             Settings
@@ -135,9 +151,8 @@ const ChatbotPage: React.FC = () => {
               toggleTheme();
               closeProfile();
             }}
-            className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
-              isDarkMode ? "text-white hover:bg-gray-700" : "hover:bg-gray-100"
-            }`}
+            className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${isDarkMode ? "text-white hover:bg-gray-700" : "hover:bg-gray-100"
+              }`}
           >
             {isDarkMode ? (
               <>
@@ -154,16 +169,7 @@ const ChatbotPage: React.FC = () => {
     );
   };
 
-  // Typing indicator component with animated dots
-  const TypingIndicator = () => (
-    <div className="flex items-center p-3 bg-gray-100 rounded-lg self-start">
-      <div className="typing-dot dot-1" />
-      <div className="typing-dot dot-2" />
-      <div className="typing-dot dot-3" />
-    </div>
-  );
-
-  // Adjust the text area height on input change
+  // Handle auto-expanding textarea height
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value);
     if (textAreaRef.current) {
@@ -172,7 +178,7 @@ const ChatbotPage: React.FC = () => {
     }
   };
 
-  // Chat message handler
+  // Handle sending message with API call (API call remains intact)
   const handleSendMessage = async () => {
     if (input.trim()) {
       const userMessage = { sender: "user", text: input };
@@ -182,13 +188,10 @@ const ChatbotPage: React.FC = () => {
         textAreaRef.current.style.height = "auto";
       }
       setIsLoading(true);
-
       try {
         const response = await fetch("http://localhost:5005/api/chatbotweb", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             message: userMessage.text,
             conversation_history: messages.map((msg) => ({
@@ -197,20 +200,15 @@ const ChatbotPage: React.FC = () => {
             })),
           }),
         });
-
         if (!response.ok) {
           throw new Error("Failed to fetch chatbot response");
         }
-
         const data = await response.json();
         const botMessage = { sender: "bot", text: data.reply };
         setMessages((prev) => [...prev, botMessage]);
       } catch (error) {
         console.error("Error communicating with chatbot:", error);
-        const errorMessage = {
-          sender: "bot",
-          text: "Sorry, I encountered an error. Please try again.",
-        };
+        const errorMessage = { sender: "bot", text: "Sorry, I encountered an error. Please try again." };
         setMessages((prev) => [...prev, errorMessage]);
       } finally {
         setIsLoading(false);
@@ -219,10 +217,10 @@ const ChatbotPage: React.FC = () => {
   };
 
   return (
-    <div className={`min-h-screen ${isDarkMode ? "bg-gray-800 text-white" : "bg-gray-100 text-black"}`}>
+    <div className={`min-h-screen ${isDarkMode ? "bg-gray-800 text-white" : "bg-white text-black"}`}>
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 h-full ${isSidebarCollapsed ? "w-16" : "w-64"} transition-all duration-300 z-20`}
+        className={`fixed top-0 left-0 h-full ${isSidebarCollapsed ? "w-16" : "w-64"} transition-all duration-300 shadow-md1 z-30`}
         style={{ background: "var(--sidebar-bg)", color: "var(--sidebar-color)" }}
       >
         <nav className="mt-20">
@@ -230,11 +228,7 @@ const ChatbotPage: React.FC = () => {
             const isActive = pathname.startsWith(item.path);
             return (
               <Link key={index} href={item.path}>
-                <div
-                  className={`flex items-center m-2 ${isSidebarCollapsed ? "px-4" : "px-6"} py-3 rounded-lg transition-colors ${
-                    isActive ? "bg-white/20" : "hover:bg-white/10"
-                  }`}
-                >
+                <div className={`flex items-center m-2 ${isSidebarCollapsed ? "px-4" : "px-6"} py-3 rounded-lg transition-colors ${isActive ? "bg-white/20" : "hover:bg-white/10"}`}>
                   <item.icon className={`w-6 h-6 ${isSidebarCollapsed ? "" : "mr-4"}`} fill={isActive ? "currentColor" : "none"} />
                   {!isSidebarCollapsed && <span className="text-sm">{item.label}</span>}
                 </div>
@@ -246,11 +240,7 @@ const ChatbotPage: React.FC = () => {
               const isActive = pathname.startsWith(item.path);
               return (
                 <Link key={index} href={item.path}>
-                  <div
-                    className={`flex items-center m-2 ${isSidebarCollapsed ? "px-4" : "px-6"} py-3 rounded-lg transition-colors ${
-                      isActive ? "bg-white/20" : "hover:bg-white/10"
-                    }`}
-                  >
+                  <div className={`flex items-center m-2 ${isSidebarCollapsed ? "px-4" : "px-6"} py-3 rounded-lg transition-colors ${isActive ? "bg-white/20" : "hover:bg-white/10"}`}>
                     <item.icon className={`w-6 h-6 ${isSidebarCollapsed ? "" : "mr-4"}`} fill={isActive ? "currentColor" : "none"} />
                     {!isSidebarCollapsed && <span className="text-sm">{item.label}</span>}
                   </div>
@@ -279,9 +269,7 @@ const ChatbotPage: React.FC = () => {
           <button
             ref={profileButtonRef}
             onClick={toggleProfile}
-            className={`flex items-center px-4 py-2 rounded-full ${
-              isDarkMode ? "bg-gray-700 hover:bg-gray-600" : "bg-gray-100 hover:bg-gray-200"
-            } transition-colors`}
+            className={`flex items-center px-4 py-2 rounded-full ${isDarkMode ? "bg-gray-700 hover:bg-gray-600" : "bg-gray-100 hover:bg-gray-200"} transition-colors`}
           >
             <User className="w-8 h-8 rounded-full mr-2" />
             <span className="font-medium">{user ? user.name : "User"}</span>
@@ -309,40 +297,44 @@ const ChatbotPage: React.FC = () => {
           </h2>
           <hr className={`w-full border-t ${isDarkMode ? "border-gray-600" : "border-gray-300"}`} />
         </div>
-        <div className={`bg-transparent rounded-lg p-6 border ${isDarkMode ? "border-gray-600" : "border-gray-300"}`}>
+        <div className={`bg-transparent rounded-cus p-6 border ${isDarkMode ? "border-gray-600" : "border-gray-300"}`}>
           <div className="h-96 overflow-y-auto space-y-4 mb-4">
-          {messages.map((message, index) => (
-  <div
-    key={index}
-    className={`p-3 rounded-lg border ${
-      message.sender === "user" 
-        ? "self-end bg-gradient-to-r from-purple-500 to-blue-500 text-white text-white border-gray-300 dark:bg-gradient-to-r from-purple-500 to-blue-500 text-white "
-        : "self-start bg-transparent border-gray-600 dark:border-gray-300"
-    }`}
-  >
-    <p className={`${ message.sender === "user" || isDarkMode ? "text- white" : "text-black"}`}>{message.text}</p>
-  </div>
-))}
-            {isLoading && <TypingIndicator />}
+            {messages.map((message, index) => (
+              <div
+                key={index}
+                className={`p-3 rounded-lg border ${message.sender === "user"
+                  ? "self-end bg-gradient-to-r from-purple-500 to-blue-500 text-white border-gray-300"
+                  : "self-start bg-transparent border-gray-600"
+                  }`}
+              >
+                <p className={`${message.sender === "user" || isDarkMode ? "text-white" : "text-black"}`}>{message.text}</p>
+              </div>
+            ))}
+            {isLoading && (
+              <div className="flex justify-start">
+                <div className={`text-gray-800 p-2 rounded-lg bg-transparent border ${isDarkMode ? "border-gray-600" : "border-gray-300"}`}>
+                  <TypingIndicator />
+                </div>
+              </div>
+            )}
+            <div ref={messageEndRef} />
           </div>
-          {/* Input Area with auto-expanding textarea and send button inside */}
           <div className="relative w-full px-3 py-3">
             <textarea
               ref={textAreaRef}
               value={input}
               onChange={handleInputChange}
               placeholder="Ask anything"
-              className={`w-full resize-none border border-gray-300 rounded-full pr-16 pl-3 py-2 min-h-[40px] max-h-52 overflow-auto custom-scrollbar ${
-                isDarkMode
-                  ? "bg-gray-900 text-white placeholder-gray-400"
-                  : "bg-white text-gray-800 placeholder-gray-500"
-              }`}
+              className={`w-full resize-none border border-gray-300 rounded-full pr-16 pl-3 pt-55 py-2 min-h-[40px] max-h-52 overflow-auto custom-scrollbar ${isDarkMode
+                ? "bg-gray-900 text-white placeholder-gray-400"
+                : "bg-white text-gray-800 placeholder-gray-500"
+                }`}
               disabled={isLoading}
             />
             <button
               onClick={handleSendMessage}
               disabled={isLoading}
-              className="absolute bottom-10 right-6 bg-blue-500 text-white px-3 py-1 rounded-full"
+              className="absolute bottom-11 right-6 bg-pink-500 text-white px-3 py-1 rounded-full"
             >
               Send
             </button>
@@ -362,7 +354,9 @@ const ChatbotPage: React.FC = () => {
           background: transparent;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background-color: ${isDarkMode ? "rgba(255, 255, 255, 0.3)" : "rgba(0, 0, 0, 0.3)"};
+          background-color: ${isDarkMode
+          ? "rgba(255, 255, 255, 0.3)"
+          : "rgba(0, 0, 0, 0.3)"};
           border-radius: 3px;
         }
         .typing-dot {
