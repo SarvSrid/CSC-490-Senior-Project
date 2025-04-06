@@ -89,7 +89,7 @@ def google_callback():
                 user_id = user[0]
 
             session['user_id'] = user_id
-
+            print(session)
 
         except Exception as e:
             print("Database Error:", e)

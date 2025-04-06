@@ -12,29 +12,14 @@ interface ProgressData {
 }
 
 export default function Dashboard() {
-  const router = useRouter();
   const [user, setUser] = useState<{ id: string; name: string; email: string } | null>(null);
   const [progress, setProgress] = useState<ProgressData[]>([]);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
-    const userData = Cookies.get("user");
-    if (!userData) {
-      router.push("/auth/signin/signin1");
-    } else {
-      const user = JSON.parse(userData);
-      setUser(user);
-
-      // Fetch progress data
-      fetch(`http://localhost:5000/api/progress?user_id=${user.id}`)
-        .then((response) => response.json())
-        .then((data) => {
-          console.log("Fetched progress data:", data);
-          setProgress(data);
-        })
-        .catch((error) => console.error("Error fetching progress:", error));
-    }
-  }, [router]);
+    const sessionData = Cookies.get("session");
+    console.log("Session Cookie:", sessionData);
+  }, []);
 
   // DOM manipulation for progress circles, profile popup, and slide-out panel
   useEffect(() => {

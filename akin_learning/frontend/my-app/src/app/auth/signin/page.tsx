@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 
 export default function SignInSignUp() {
   // const router = useRouter();
@@ -33,11 +32,12 @@ export default function SignInSignUp() {
     };
   }, []);
 
-  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
+    console.log("Email:", email, "Password:", password);
     const response = await fetch("http://localhost:5000/auth/login", {
       method: "POST",
+      credentials: 'include',
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({
         email,
@@ -45,7 +45,7 @@ export default function SignInSignUp() {
       })
     });
 
-     const data = await response.json();
+    const data = await response.json();
     if (response.ok) {
       alert("Login successful!");
     } else {
@@ -81,15 +81,15 @@ export default function SignInSignUp() {
     <div className="container" id="container">
       {/* Sign In Form (Left Panel) */}
       <div className="form-container sign-in-container">
-        <form onSubmit={handleLogin}>
+        <form onSubmit={handleSignIn}>
           <h1>Welcome Back!</h1>
           <p className="p2">Enter your username and password to sign in.</p>
           {errorMessage && <p className="error-message">{errorMessage}</p>}
           <input
-            type="text"
-            placeholder="Username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            type="email"
+            placeholder="Email Address"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             required
           />
           <input

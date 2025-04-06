@@ -7,7 +7,9 @@ export async function middleware(req: NextRequest) {
 
     // Forward cookies to Flask's validation endpoint
     const res = await fetch('http://localhost:5000/auth/validate', {
+        credentials: 'include',
         headers: {
+            'Content-Type': 'application/json',
             // Include the client's cookies in the request to Flask
             Cookie: `session=${sessionCookie}`,
         },
@@ -17,7 +19,9 @@ export async function middleware(req: NextRequest) {
         return NextResponse.redirect('http://localhost:3000/auth/signin');
     }
 
+    console.log("Incoming cookies:", req.cookies.getAll());
     // Allow access if the user is authenticated
+    console.log(NextResponse.next())
     return NextResponse.next();
 }
 
