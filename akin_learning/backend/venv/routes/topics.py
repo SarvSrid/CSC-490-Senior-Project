@@ -54,6 +54,8 @@ def get_topics():
             progress p ON t.id = p.topic_id AND p.user_id = %s
         WHERE 
             t.subject_id = %s
+        ORDER BY 
+            t.id
         """
         
         cursor.execute(query, (current_user_id, subject_id))

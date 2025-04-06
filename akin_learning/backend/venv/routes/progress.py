@@ -41,7 +41,7 @@ def get_progress():
         conn = get_db_connection()
         cursor = conn.cursor(cursor_factory=RealDictCursor)
 
-        # Fetch progress data grouped by subject
+        # Fetch progress data grouped by subject and ordered by subject_id
         cursor.execute("""
             SELECT 
                 s.id AS subject_id,
@@ -52,6 +52,7 @@ def get_progress():
             JOIN progress p ON p.topic_id = t.id
             WHERE p.user_id = %s
             GROUP BY s.id, s.name
+            ORDER BY s.id  -- This will order results by subject_id in ascending order
         """, (user_id,))
         progress_data = cursor.fetchall()
 
