@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState, useEffect, useRef } from "react";
 import { ChevronDown } from "lucide-react";
 
@@ -7,8 +5,6 @@ interface Option {
     id: number;
     option_text: string;
     is_correct: boolean;
-    // parsedLabel?: string;
-    // parsedCode?: string;
 }
 
 interface Question {
@@ -18,10 +14,6 @@ interface Question {
     options: Option[];
     answered_correctly?: boolean | null;
     selected_option?: number | null;
-    parsedSubtext?: {
-        text: string;
-        code: string;
-    };
 }
 
 interface QuestionCardProps {
@@ -44,21 +36,6 @@ const parseSubtext = (subtext: string) => {
     };
 };
 
-// Commented out option parsing since we're not using it
-/*
-const parseOptionText = (optionText: string) => {
-    const unescapedText = optionText.replace(/\\n/g, '\n');
-    const parts = unescapedText.split('\n');
-    const label = parts[0];
-    const code = parts.slice(1).join('\n');
-
-    return {
-        label: label || '',
-        code: code || ''
-    };
-};
-*/
-
 const QuestionCard: React.FC<QuestionCardProps> = ({
     q,
     isDarkMode,
@@ -70,21 +47,19 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
 }) => {
     const [showScrollIndicator, setShowScrollIndicator] = useState(false);
     const subtextRef = useRef<HTMLDivElement>(null);
-    
-    // Parse only the subtext
     const parsedSubtext = parseSubtext(q.subtext);
 
     useEffect(() => {
         if (subtextRef.current) {
-            setShowScrollIndicator(
-                subtextRef.current.scrollHeight > subtextRef.current.clientHeight
-            );
+            const { scrollHeight, clientHeight } = subtextRef.current;
+            setShowScrollIndicator(scrollHeight > clientHeight);
         }
-    }, [q?.subtext]);
+    }, [q.subtext]);
 
     const handleSubtextScroll = () => {
-        if (subtextRef.current && subtextRef.current.scrollTop > 0) {
-            setShowScrollIndicator(false);
+        if (subtextRef.current) {
+            const { scrollTop, scrollHeight, clientHeight } = subtextRef.current;
+            setShowScrollIndicator(scrollTop + clientHeight < scrollHeight);
         }
     };
 
@@ -99,21 +74,35 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                     {q.header}
                 </h3>
             </div>
+            
             {/* Fixed Subtext Area */}
             <div
                 ref={subtextRef}
                 onScroll={handleSubtextScroll}
                 className="max-h-[230px] overflow-y-scroll custom-scrollbar mb-2 relative"
             >
-                <p style={{ whiteSpace: "pre-line" }} className={`${isDarkMode ? "text-white" : "text-gray-700"}`}>
-                    {q.subtext.replace(/\\n/g, "\n")}
-                </p>
+                {/* Render parsed text */}
+                {parsedSubtext.text && (
+                    <p className={`${isDarkMode ? "text-white" : "text-gray-700"} mb-2`}>
+                        {parsedSubtext.text}
+                    </p>
+                )}
+                
+                {/* Render parsed code */}
+                {parsedSubtext.code && (
+                    <pre className={`${isDarkMode ? "bg-gray-800 text-gray-200" : "bg-gray-100 text-gray-700"} p-3 rounded mb-2 whitespace-pre-wrap`}>
+                        {parsedSubtext.code}
+                    </pre>
+                )}
+                
                 {showScrollIndicator && (
                     <div className="absolute bottom-1 right-1">
                         <ChevronDown className="w-4 h-4 text-gray-500 animate-bounce" />
                     </div>
                 )}
             </div>
+            
+            {/* Options */}
             <div className="space-y-3">
                 {q.options.map((option) => {
                     const isSelected = selectedOptionId === option.id;
@@ -121,14 +110,11 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                         ? "bg-transparent border-gray-400 text-gray-200 hover:bg-gray-700"
                         : "bg-transparent border-gray-300 text-gray-700 hover:bg-gray-100";
 
-                    // Highlight the correct option green if answered correctly.
                     if (q.answered_correctly === true && option.is_correct) {
                         optionStyle = "bg-green-500 border-green-500 text-white";
                     } else if (hasSubmitted && isSelected && isCorrect === false) {
-                        // If submitted and answer is incorrect, show red.
                         optionStyle = "bg-red-500 border-red-500 text-white";
                     } else if (isSelected) {
-                        // Otherwise, if selected but not submitted, show pink.
                         optionStyle = "bg-pink-500 border-pink-500 text-white";
                     }
 
@@ -145,6 +131,8 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                     );
                 })}
             </div>
+            
+            {/* Submit Button */}
             <button
                 onClick={handleSubmit}
                 disabled={q.answered_correctly === true}
@@ -155,6 +143,8 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
             >
                 Submit
             </button>
+            
+            {/* Result Feedback */}
             {hasSubmitted && isCorrect === true && (
                 <p className="mt-2 text-green-500">Correct!</p>
             )}
