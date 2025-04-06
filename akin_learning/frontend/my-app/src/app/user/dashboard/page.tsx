@@ -20,17 +20,33 @@ import {
 // Helper function for progress color.
 const getProgressColor = (percentage: number) => {
   if (percentage === 100) return "url(#gradient)";
+  else if (percentage === 0) return "";
   else if (percentage < 33) return "#FF0000";
   else if (percentage < 66) return "#FFFF00";
   else return "#00FF00";
 };
 
-// Interface for progress data returned by your API.
+// Interface for subject-level progress data returned by your first API.
 interface ProgressData {
   subject_id: number;
   subject: string;
   average_progress: number;
   questionLeft: number; // The question number the user left off at.
+  last_visited_question_id?: number | null; // Optional
+  recentTopics?: TopicData[]; // Will hold the top 3 recent topics for the subject.
+}
+
+// Interface for topic-level progress data returned by your second API.
+interface TopicData {
+  topic_id: number;
+  name: string;
+  subject_id: number;
+  last_visited_question_id?: number | null;
+  updated_at: string;
+  difficulty_level: string;
+  progress_percentage: number;
+  active_questions: number;
+  completed_questions: number;
 }
 
 function Dashboard() {
@@ -53,14 +69,24 @@ function Dashboard() {
     } else {
       const parsedUser = JSON.parse(userData);
       setUser(parsedUser);
-      // Fetch progress data from your API.
-      fetch(`http://localhost:5001/api/progress?user_id=${parsedUser.id}`)
-        .then((response) => response.json())
-        .then((data) => {
-          console.log("Fetched progress data:", data);
-          setProgress(data);
+
+      Promise.all([
+        fetch(`http://localhost:5001/api/progress?user_id=${parsedUser.id}`),
+        fetch(`http://localhost:5003/api/user-progress?user_id=${parsedUser.id}`)
+      ])
+        .then(async ([progressRes, userProgressRes]) => {
+          const progressData: ProgressData[] = await progressRes.json();
+          const userProgress: TopicData[] = await userProgressRes.json();
+
+          // Merge the two datasets by grouping topics under the corresponding subject.
+          const mergedData = progressData.map((subject) => ({
+            ...subject,
+            recentTopics: userProgress.filter((topic) => topic.subject_id === subject.subject_id)
+          }));
+
+          setProgress(mergedData);
         })
-        .catch((error) => console.error("Error fetching progress:", error));
+        .catch(error => console.error("Error fetching data:", error));
     }
   }, [router]);
 
@@ -115,8 +141,7 @@ function Dashboard() {
     return (
       <div
         ref={dropdownRef}
-        className={`fixed right-4 mt-16 w-64 ${isDarkMode ? "bg-gray-800 text-white" : "bg-gray-100 text-black"} rounded-xl shadow-lg border ${isDarkMode ? "border-gray-700" : "border-gray-200"
-          } z-50`}
+        className={`fixed right-4 mt-16 w-64 ${isDarkMode ? "bg-gray-800 text-white" : "bg-gray-100 text-black"} rounded-xl shadow-lg border ${isDarkMode ? "border-gray-700" : "border-gray-200"} z-50`}
       >
         <div className="p-4 border-b border-gray-200">
           <div className="flex items-center">
@@ -130,16 +155,14 @@ function Dashboard() {
         <div className="p-2">
           <button
             onClick={() => router.push("/user/settings/account")}
-            className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${isDarkMode ? "text-white hover:bg-gray-700" : "hover:bg-gray-100"
-              }`}
+            className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${isDarkMode ? "text-white hover:bg-gray-700" : "hover:bg-gray-100"}`}
           >
             <User className="inline w-5 h-5 mr-3" />
             Edit Profile
           </button>
           <button
             onClick={() => router.push("/user/settings")}
-            className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${isDarkMode ? "text-white hover:bg-gray-700" : "hover:bg-gray-100"
-              }`}
+            className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${isDarkMode ? "text-white hover:bg-gray-700" : "hover:bg-gray-100"}`}
           >
             <Settings className="inline w-5 h-5 mr-3" />
             Settings
@@ -149,8 +172,7 @@ function Dashboard() {
               toggleTheme();
               closeProfile();
             }}
-            className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${isDarkMode ? "text-white hover:bg-gray-700" : "hover:bg-gray-100"
-              }`}
+            className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${isDarkMode ? "text-white hover:bg-gray-700" : "hover:bg-gray-100"}`}
           >
             {isDarkMode ? (
               <>
@@ -167,17 +189,13 @@ function Dashboard() {
     );
   };
 
-  // ProgressCard component – renders each progress card.
+  // ProgressCard component – renders each progress card for a subject.
+  // It now uses the merged property "recentTopics" which contains the top 3 recent topics.
   const ProgressCard: React.FC<{ item: ProgressData }> = ({ item }) => {
-    const recentTopics = [
-      { topicName: `${item.subject} - Part 1`, questionLeft: item.questionLeft, topicId: item.subject_id },
-      { topicName: `${item.subject} - Part 2`, questionLeft: item.questionLeft + 2, topicId: item.subject_id },
-      { topicName: `${item.subject} - Part 3`, questionLeft: item.questionLeft + 4, topicId: item.subject_id },
-    ];
+    const recentTopics = item.recentTopics || [];
     return (
       <div
-        className={`p-6 rounded-2xl transition-colors duration-300 shadow-none border ${isDarkMode ? "border-gray-600" : "border-gray-300"
-          } bg-transparent`}
+        className={`p-6 rounded-2xl transition-colors duration-300 shadow-none border ${isDarkMode ? "border-gray-600" : "border-gray-300"} bg-transparent`}
         style={{ height: "460px" }}
       >
         {/* Top Section with Start Button */}
@@ -185,8 +203,7 @@ function Dashboard() {
           <h3 className={`text-lg font-medium ${isDarkMode ? "text-white" : "text-gray-800"}`}>{item.subject}</h3>
           <Link href={`/user/topics?subject_id=${item.subject_id}`}>
             <button
-              className={`px-4 py-1 rounded-full border transition-colors ${isDarkMode ? "border-gray-600 text-white hover:bg-gray-600" : "border-gray-300 text-gray-800 hover:bg-gray-300"
-                }`}
+              className={`px-4 py-1 rounded-full border transition-colors ${isDarkMode ? "border-gray-600 text-white hover:bg-gray-600" : "border-gray-300 text-gray-800 hover:bg-gray-300"}`}
             >
               Start
             </button>
@@ -229,22 +246,30 @@ function Dashboard() {
         </div>
         {/* Bottom Section: Recent Topics List */}
         <div className="space-y-4">
-          {recentTopics.slice(0, 3).map((topic, index) => (
-            <div key={index} className="flex items-center justify-between">
-              <div>
-                <h4 className="text-xl font-medium">{topic.topicName}</h4>
-                <p className="text-sm text-gray-500">Left off at question {topic.questionLeft}</p>
+          {recentTopics.length > 0 ? (
+            recentTopics.slice(0, 3).map((topic, index) => (
+              <div key={index} className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-sm font-medium">{topic.name}</h4>
+                  <p className="text-sm text-gray-500">
+                    {topic.completed_questions} of {topic.active_questions} completed ({Number(topic.progress_percentage).toFixed(0)}%)
+                  </p>
+                </div>
+                <Link href={`/user/questions?topic_id=${topic.topic_id}`}>
+                  <button
+                    className={`px-4 py-1 rounded-full border transition-colors ${isDarkMode
+                        ? "border-gray-600 text-white hover:bg-gray-600"
+                        : "border-gray-300 text-gray-800 hover:bg-gray-300"
+                      }`}
+                  >
+                    Continue
+                  </button>
+                </Link>
               </div>
-              <Link href={`/user/questions?subject_id=${topic.topicId}&questionLeft=${topic.questionLeft}`}>
-                <button
-                  className={`px-4 py-1 rounded-full border transition-colors ${isDarkMode ? "border-gray-600 text-white hover:bg-gray-600" : "border-gray-300 text-gray-800 hover:bg-gray-300"
-                    }`}
-                >
-                  Continue
-                </button>
-              </Link>
-            </div>
-          ))}
+            ))
+          ) : (
+            <p className="text-center text-sm text-gray-500">No recent topics</p>
+          )}
         </div>
       </div>
     );
@@ -254,13 +279,14 @@ function Dashboard() {
   const ChartCard: React.FC<{ data: ProgressData[]; isDarkMode: boolean }> = ({ data, isDarkMode }) => {
     return (
       <div
-        className={`p-6 rounded-2xl transition-colors duration-300 shadow-none border ${isDarkMode ? "border-gray-600" : "border-gray-300"
-          } bg-transparent`}
+        className={`p-6 rounded-2xl transition-colors duration-300 shadow-none border ${isDarkMode ? "border-gray-600" : "border-gray-300"} bg-transparent`}
         style={{ height: "250px", width: "35%" }}
       >
         <div className="flex items-center my-44">
           <div className="flex-grow border-t border-gray-300" />
-          <span className={`text-lg mx-2 font-medium ${isDarkMode ? "text-white" : "text-gray-800"}`}>Overall Progress Chart</span>
+          <span className={`text-lg mx-2 font-medium ${isDarkMode ? "text-white" : "text-gray-800"}`}>
+            Overall Progress Chart
+          </span>
           <div className="flex-grow border-t border-gray-300" />
         </div>
         <div className="space-y-4">
@@ -299,11 +325,7 @@ function Dashboard() {
     );
   };
 
-
   // ImprovementCard Component – displays suggestions for improvement.
-  // It picks the two subjects with the lowest progress below a threshold.
-  // If more than two subjects share the same lowest progress, two are chosen at random.
-  // The suggestions are displayed side by side.
   const ImprovementCard: React.FC<{ data: ProgressData[]; isDarkMode: boolean }> = ({ data, isDarkMode }) => {
     const threshold = 50;
     const suggestions = data.filter((item) => item.average_progress < threshold);
@@ -325,8 +347,7 @@ function Dashboard() {
     }
     return (
       <div
-        className={`p-6 rounded-2xl transition-colors duration-300 shadow-none border ${isDarkMode ? "border-gray-600" : "border-gray-300"
-          } bg-transparent`}
+        className={`p-6 rounded-2xl transition-colors duration-300 shadow-none border ${isDarkMode ? "border-gray-600" : "border-gray-300"} bg-transparent`}
         style={{ height: "190px", width: "23%" }}
       >
         <div className="flex items-center my-44">
@@ -417,8 +438,7 @@ function Dashboard() {
           <button
             ref={profileButtonRef}
             onClick={() => setIsProfileOpen(!isProfileOpen)}
-            className={`flex items-center px-4 py-2 rounded-full ${isDarkMode ? "bg-gray-700 hover:bg-gray-600" : "bg-gray-100 hover:bg-gray-200"
-              } transition-colors`}
+            className={`flex items-center px-4 py-2 rounded-full ${isDarkMode ? "bg-gray-700 hover:bg-gray-600" : "bg-gray-100 hover:bg-gray-200"} transition-colors`}
           >
             <User className="w-8 h-8 rounded-full mr-2" />
             <span className="font-medium">{user ? user.name : "User"}</span>
@@ -463,7 +483,7 @@ function Dashboard() {
       <svg width="0" height="0">
         <defs>
           <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#3B82F6" />
+            <stop offset="0%" stopColor="" />
             <stop offset="50%" stopColor="#8B5CF6" />
             <stop offset="100%" stopColor="#EC4899" />
           </linearGradient>

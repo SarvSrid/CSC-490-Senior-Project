@@ -336,12 +336,17 @@ const QuestionsPage: React.FC = () => {
               : q
           )
         );
+
         const explanationContext = `Help me understand this question: ${currentQuestion.header}. ${currentQuestion.subtext}. The options are: ${currentQuestion.options
           .map((o) => o.option_text)
           .join(", ")}.`;
-        handleChatbotMessageSubmit(explanationContext);
+
+
+        await handleChatbotMessageSubmit(explanationContext);
+
         // Incorrect feedback persists until a new option is selected.
       }
+
     } catch (error) {
       console.error("Error submitting answer:", error);
     }
