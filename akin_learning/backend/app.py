@@ -1,3 +1,4 @@
+import openai
 from flask import Flask, request, redirect, session
 from flask_cors import CORS
 import os
@@ -6,6 +7,7 @@ from akin_learning.backend.routes import api_blueprints, app_blueprints, google_
 app = Flask(__name__)
 CORS(app, origins=["http://localhost:3000"], supports_credentials=True)
 app.secret_key = os.getenv("FLASK_SECRET_KEY")
+openai.api_key = os.getenv("OPENAI_API_KEY")
 # print(app.secret_key) #debug
 
 # Register blueprints

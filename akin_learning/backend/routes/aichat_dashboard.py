@@ -1,23 +1,12 @@
 import openai
 import logging
-from flask_cors import CORS
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, Blueprint
 from datetime import datetime
 import os
 
-# Initialize Flask app
-app = Flask(__name__)
+aichat_dash_blueprint = Blueprint('openai_dash', __name__, url_prefix='/api/openai/dashboard')
 
-# Set OpenAI API key
-openai.api_key = os.getenv("OPENAI_API_KEY")
-
-# Initialize extensions
-CORS(app)
-
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-
-@app.route('/api/chatbotweb', methods=['POST'])
+@aichat_dash_blueprint.route('/fetch', methods=['POST'])
 def chatbot_web():
     """
     Handle chatbot web requests.
@@ -82,7 +71,3 @@ def generate_chatbot_response(conversation_history):
     except Exception as e:
         logging.error(f"Error generating chatbot response: {e}")
         raise
-
-if __name__ == '__main__':
-    # Run the Flask app on port 5005
-    app.run(debug=True, port=5005)

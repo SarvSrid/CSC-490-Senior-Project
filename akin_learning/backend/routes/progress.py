@@ -1,29 +1,13 @@
-from flask import Flask, jsonify, request
-from flask_jwt_extended import JWTManager
-from flask_cors import CORS
-import psycopg2
+from flask import Flask, jsonify, request, Blueprint
 from psycopg2.extras import RealDictCursor
 import os
 
-# If you have issues with connecting to the database, you can print the database URI to verify
-# $env:DATABASE_URL="postgresql://myuser:mypassword@localhost:5432/mydatabase"
+from akin_learning.backend.routes.config.model import get_db_connection
 
-# Initialize Flask app
-app = Flask(__name__)
 
-# Load database URL from environment variable
-DATABASE_URL = os.getenv("DATABASE_URL")
+progress_blueprint = Blueprint('progress_info', __name__, url_prefix='/progress')
 
-# Initialize extensions
-jwt = JWTManager(app)  # Keep JWTManager for future use
-CORS(app)  # Enable CORS
-
-# Database connection function
-def get_db_connection():
-    conn = psycopg2.connect(DATABASE_URL)
-    return conn
-
-@app.route('/api/progress', methods=['GET'])
+@progress_blueprint.route('/fetch', methods=['GET'])
 def get_progress():
     """
     Fetch progress data for the user, grouped by subject.
@@ -75,7 +59,3 @@ def get_progress():
     except Exception as e:
         print(f"Error occurred: {e}", flush=True)
         return jsonify({"error": "An error occurred while fetching progress data"}), 500
-
-
-if __name__ == '__main__':
-    app.run(debug=True, port=5000)

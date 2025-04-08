@@ -108,7 +108,7 @@ export default function Home() {
   return (
     <div className="flex flex-col items-center justify-start min-h-screen bg-gradient-to-r from-blue-500 to-purple-600 text-white pt-16">
       <header className="flex flex-col items-center mb-12">
-        <img
+        <Image
           src="/akin-learning-logo.png"
           alt="Logo"
           width={350}

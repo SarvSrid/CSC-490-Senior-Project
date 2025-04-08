@@ -1,33 +1,13 @@
-from flask import Flask, jsonify, request
-from flask_jwt_extended import JWTManager
-from flask_cors import CORS
-import psycopg2
+from flask import Flask, jsonify, request, Blueprint
 from psycopg2.extras import RealDictCursor
 import os
 
-# If you have issues with connecting to the database, you can print the database URI to verify
-# $env:DATABASE_URL="postgresql://myuser:mypassword@localhost:5432/mydatabase"
+from akin_learning.backend.routes.config.model import get_db_connection
 
-# Initialize Flask app
-app = Flask(__name__)
 
-# Load database URL from environment variable
-DATABASE_URL = os.getenv("DATABASE_URL")
+questions_blueprint = Blueprint('questions_blueprint', __name__, url_prefix='/questions')
 
-# Initialize extensions
-jwt = JWTManager(app)  # Keep JWTManager for future use
-CORS(app)  # Enable CORS
-
-# Hardcoded user_id for testing
-TEST_USER_ID = 1
-
-# Database connection function
-def get_db_connection():
-    conn = psycopg2.connect(DATABASE_URL)
-    return conn
-
-# Routes for questions
-@app.route('/api/questions', methods=['GET'])
+@questions_blueprint.route('/fetch', methods=['GET'])
 def get_questions():
     """
     Fetch all main questions and their options for the hardcoded user and a specific topic.
@@ -95,7 +75,7 @@ def get_questions():
         return jsonify({"error": str(e)}), 500
 
 
-@app.route('/api/questions', methods=['POST'])
+@questions_blueprint.route('/next', methods=['POST'])
 def create_question():
     """
     Create a new main question with options for the hardcoded user.
@@ -200,8 +180,3 @@ def answer_question(question_id):
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-
-# Run the Flask app
-if __name__ == '__main__':
-    app.run(debug=True, port=5003)
