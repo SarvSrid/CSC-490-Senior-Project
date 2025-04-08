@@ -42,7 +42,6 @@ def get_questions():
             # header = header.replace('\r', '\n')    # Convert old Mac line endings
 
             header = main_question['header'].replace('\n', '\\n')
-            subtext = main_question['subtext'].replace('\n', '\\n')
 
             cursor.execute("""
                 SELECT * FROM question_option
@@ -51,11 +50,10 @@ def get_questions():
             main_options = cursor.fetchall()
 
             #                'header': main_question['header'].replace('\r\n', '\n'),
-            #               'subtext': main_question['subtext'],
             response.append({
                 'id': main_question['id'],
                 'header': header,
-                'subtext': subtext,
+                'subtext': main_question['subtext'],
                 'topic_id': main_question['topic_id'],
                 'difficulty_level': main_question['difficulty_level'],
                 'progress': main_question['progress'],
@@ -169,6 +167,13 @@ def answer_question(question_id):
                 WHERE id = %s
             """, (question_id,))
 
+        cursor.execute("""
+            INSERT INTO user_topic_progress (user_id, topic_id, last_visited_question_id, updated_at)
+            VALUES (%s, %s, %s, NOW())
+            ON CONFLICT (user_id, topic_id) 
+            DO UPDATE SET last_visited_question_id = %s, updated_at = NOW()
+        """, (TEST_USER_ID, question['topic_id'], question_id, question_id))
+
         conn.commit()
         cursor.close()
         conn.close()
@@ -179,4 +184,79 @@ def answer_question(question_id):
         }), 200
 
     except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+
+@app.route('/api/user-progress', methods=['GET'])
+def get_user_progress():
+    """
+    Fetch user's progress including last visited questions for topics.
+    Returns the top 3 most recently updated topics per subject
+    that are not yet 100% complete.
+    """
+    try:
+        # Get user_id from query parameters, default to TEST_USER_ID if missing
+        user_id = request.args.get("user_id", TEST_USER_ID)
+
+        # Open database connection and create a cursor that returns dicts
+        conn = get_db_connection()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+
+        # SQL query:
+        # 1. Inner subquery "sub" ranks each topic by most recent update per subject
+        # 2. Outer query selects only the top 3 per subject (rn <= 3)
+        # 3. Left join to progress table to fetch progress details
+        # 4. Filter out topics already at 100% progress
+        query = """
+        SELECT 
+            sub.topic_id,
+            sub.last_visited_question_id,
+            sub.name,
+            sub.subject_id,
+            sub.updated_at,
+            sub.difficulty_level,
+            COALESCE(p.percentage, 0) AS progress_percentage,
+            COALESCE(p.active_questions, 0) AS active_questions,
+            COALESCE(p.completed_questions, 0) AS completed_questions
+        FROM (
+            SELECT 
+                utp.topic_id,
+                utp.last_visited_question_id,
+                t.name,
+                t.subject_id,
+                utp.updated_at,
+                t.difficulty_level,
+                ROW_NUMBER() OVER (
+                  PARTITION BY t.subject_id 
+                  ORDER BY utp.updated_at DESC
+                ) AS rn
+            FROM user_topic_progress utp
+            JOIN topic t 
+              ON utp.topic_id = t.id
+            WHERE utp.user_id = %s
+        ) sub
+        LEFT JOIN progress p 
+          ON sub.topic_id = p.topic_id 
+         AND p.user_id = %s
+        WHERE sub.rn <= 3
+          AND COALESCE(p.percentage, 0) < 100
+        ORDER BY sub.subject_id, sub.updated_at DESC;
+        """
+
+        # Execute query with user_id for both subquery and join
+        cursor.execute(query, (user_id, user_id))
+
+        # Fetch all matching rows
+        progress_data = cursor.fetchall()
+
+        # Close cursor and connection
+        cursor.close()
+        conn.close()
+
+        # Return the results as JSON
+        return jsonify(progress_data), 200
+
+    except Exception as e:
+        # On error, return error message as JSON
         return jsonify({"error": str(e)}), 500
