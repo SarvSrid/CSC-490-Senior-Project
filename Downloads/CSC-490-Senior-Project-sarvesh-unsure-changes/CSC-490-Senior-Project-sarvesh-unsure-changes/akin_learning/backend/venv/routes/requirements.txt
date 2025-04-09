@@ -1,0 +1,11 @@
+flask
+flask_sqlalchemy
+flask-jwt-extended
+psycopg2-binary
+python-dotenv
+flask-dance
+oauthlib>=3.2
+requests-oauthlib
+flask-cors
+google-auth
+requests

@@ -1,0 +1,624 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation"; 
+
+interface Option {
+  id: number;
+  option_text: string;
+  is_correct: boolean;
+  parsedLabel?: string;
+  parsedCode?: string;
+}
+
+interface Question {
+  id: number;
+  header: string;
+  subtext: string;
+  options: Option[];
+  answered_correctly: boolean;
+  parsedHeader?: {
+    text: string;
+    code: string;
+  };
+  parsedSubtext?: {
+    text: string;
+    code: string;
+  };
+}
+
+interface ChatbotMessage {
+  role: "user" | "assistant";
+  content: string;
+  timestamp: string;
+}
+
+const QuestionsPage: React.FC = () => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const topicId = searchParams ? searchParams.get("topic_id") : null;
+
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [selectedOptionId, setSelectedOptionId] = useState<number | null>(null);
+  const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
+  const [isChatbotOpen, setIsChatbotOpen] = useState(false);
+  const [chatbotMessages, setChatbotMessages] = useState<ChatbotMessage[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isChatbotLoading, setIsChatbotLoading] = useState(false);
+
+  const parseQuestionHeader = (header: string) => {
+    const unescapedHeader = header.replace(/\\n/g, '\n');
+    const firstNewline = unescapedHeader.indexOf('\n');
+    
+    if (firstNewline === -1) {
+      return {
+        text: unescapedHeader,
+        code: ''
+      };
+    }
+
+    return {
+      text: unescapedHeader.substring(0, firstNewline),
+      code: unescapedHeader.substring(firstNewline + 1)
+    };
+  };
+
+  const parseSubtext = (subtext: string) => {
+    const unescapedSubtext = subtext.replace(/\\n/g, '\n');
+    const parts = unescapedSubtext.split('\n');
+    
+    return {
+      text: '',
+      code: unescapedSubtext
+    };
+  };
+
+  const parseOptionText = (optionText: string) => {
+    const unescapedText = optionText.replace(/\\n/g, '\n');
+    const parts = unescapedText.split('\n');
+    const label = parts[0];
+    const code = parts.slice(1).join('\n');
+
+    return {
+        label: label || '',  // Ensure we always have a label
+        code: code || ''     // Ensure we always have code (even if empty)
+    };
+};
+
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      if (!topicId) {
+        console.error("Topic ID is missing");
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const response = await fetch(
+          `http://localhost:5003/api/questions?topic_id=${topicId}`
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch questions");
+        }
+        const data = await response.json();
+        
+        const parsedQuestions = data.map((question: Question) => {
+          const parsedHeader = parseQuestionHeader(question.header);
+          const parsedSubtext = parseSubtext(question.subtext);
+          const parsedOptions = question.options.map(option => {
+            const parsed = parseOptionText(option.option_text);
+            return {
+              ...option,
+              parsedLabel: parsed.label,
+              parsedCode: parsed.code
+            };
+          });
+        
+          return {
+            ...question,
+            parsedHeader,
+            parsedSubtext,
+            options: parsedOptions
+          };
+        });
+
+        setQuestions(parsedQuestions);
+      } catch (error) {
+        console.error("Error fetching questions:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchQuestions();
+  }, [topicId]);
+
+  // Reset chatbot when question changes
+  useEffect(() => {
+    setIsChatbotOpen(false);
+    setChatbotMessages([]);
+  }, [currentQuestionIndex]);
+
+  const handleQuestionChange = (index: number) => {
+    setCurrentQuestionIndex(index);
+    setSelectedOptionId(null);
+    setIsCorrect(null);
+    setIsChatbotOpen(false);
+    setChatbotMessages([]);
+  };
+
+  const handleOptionSelect = (optionId: number) => {
+    setSelectedOptionId(optionId);
+  };
+
+  const handleAnswerSubmit = async () => {
+    if (selectedOptionId === null) {
+      alert("Please select an option before submitting.");
+      return;
+    }
+
+    const currentQuestion = questions[currentQuestionIndex];
+    try {
+      const response = await fetch(
+        `http://localhost:5003/api/questions/${currentQuestion.id}/answer`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            selected_option_id: selectedOptionId,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to submit answer");
+      }
+
+      const result = await response.json();
+      setIsCorrect(result.is_correct);
+
+      setQuestions((prevQuestions) =>
+        prevQuestions.map((question) =>
+          question.id === currentQuestion.id
+            ? { ...question, answered_correctly: result.is_correct }
+            : question
+        )
+      );
+    } catch (error) {
+      console.error("Error submitting answer:", error);
+    }
+  };
+
+  const handleChatbotMessageSubmit = async (message: string) => {
+    if (!message.trim()) return;
+
+    setIsChatbotLoading(true);
+
+    const userMessage: ChatbotMessage = {
+      role: "user",
+      content: message,
+      timestamp: new Date().toLocaleTimeString(),
+    };
+
+    setChatbotMessages((prev) => [...prev, userMessage]);
+
+    try {
+      const response = await fetch("http://localhost:5004/api/chatbot", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message: message,
+          conversation_history: chatbotMessages.map((msg) => ({
+            role: msg.role,
+            content: msg.content,
+          })),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to send message to chatbot");
+      }
+
+      const data = await response.json();
+      setChatbotMessages(data.conversation_history);
+    } catch (error) {
+      console.error("Error sending message to chatbot:", error);
+      const errorMessage: ChatbotMessage = {
+        role: "assistant",
+        content: "Sorry, I encountered an error. Please try again.",
+        timestamp: new Date().toLocaleTimeString(),
+      };
+      setChatbotMessages((prev) => [...prev, errorMessage]);
+    } finally {
+      setIsChatbotLoading(false);
+    }
+  };
+
+  const handleChatbotButtonClick = async () => {
+    const newChatbotOpenState = !isChatbotOpen;
+    setIsChatbotOpen(newChatbotOpenState);
+    setChatbotMessages([]);
+
+    if (newChatbotOpenState) {
+      const currentQuestion = questions[currentQuestionIndex];
+      const questionContext = `I need help with this question: ${currentQuestion.header}. ${currentQuestion.subtext} Here are the answer choices: ${currentQuestion.options
+        .map((option) => option.option_text)
+        .join(", ")}`;
+
+      setIsChatbotLoading(true);
+      try {
+        const response = await fetch("http://localhost:5004/api/chatbot", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            message: questionContext,
+            conversation_history: [],
+          }),
+        });
+
+        const data = await response.json();
+        setChatbotMessages(data.conversation_history);
+      } catch (error) {
+        console.error("Error initializing chatbot:", error);
+      } finally {
+        setIsChatbotLoading(false);
+      }
+    }
+  };
+
+  if (isLoading) {
+    return <div className="flex justify-center items-center h-screen">Loading questions...</div>;
+  }
+
+  if (!questions.length) {
+    return <div className="flex justify-center items-center h-screen">No questions available for this topic.</div>;
+  }
+
+  const currentQuestion = questions[currentQuestionIndex];
+  const parsedHeader = parseQuestionHeader(currentQuestion.header);
+
+  return (
+    <div className="flex h-screen overflow-hidden">
+      {/* Left Sidebar */}
+      <aside className="w-1/5 min-h-screen bg-gradient-to-b from-blue-500 to-purple-500 text-white p-5">
+        <h2 className="text-xl font-bold mb-8">Akin Learning</h2>
+        <nav className="space-y-4">
+          <Link href="/user/dashboard">
+            <button className="block text-left">🏠 Home</button>
+          </Link>
+          <button className="block text-left">⚙️ Settings</button>
+        </nav>
+        <Link href="/auth/signin/signin1">
+          <button className="absolute bottom-5 left-5">🚪 Log Out</button>
+        </Link>
+        <button
+            onClick={() => router.back()}
+            className="block text-left bg-gray-200 text-black px-2 py-1 rounded hover:bg-gray-300 text-sm mt-4"
+          >
+            🔙 Previous Topic
+        </button>
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 p-10">
+        <h1 className="text-3xl font-bold text-center mb-6">Questions</h1>
+
+        {/* Navigation Buttons */}
+        <div className="flex justify-center mb-6 flex-wrap gap-2">
+          {questions.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => handleQuestionChange(index)}
+              className={`px-4 py-2 rounded ${
+                currentQuestionIndex === index
+                  ? "bg-blue-500 text-white"
+                  : questions[index].answered_correctly
+                  ? "bg-green-500 text-white"
+                  : "bg-gray-200 text-black"
+              }`}
+            >
+              {index + 1}
+            </button>
+          ))}
+        </div>
+
+        {/* Current Question */}
+        <div className="border p-5 rounded-lg shadow-md">
+          <h3 className="text-xl font-bold mb-2">{parsedHeader.text}</h3>
+          
+          <div className="max-h-64 overflow-y-auto mb-4">
+            {currentQuestion.parsedSubtext?.text && (
+              <p className="text-gray-600 mb-2">{currentQuestion.parsedSubtext?.text}</p>
+            )}
+            {currentQuestion.parsedSubtext?.code && (
+              <pre className="bg-gray-100 p-4 rounded-md overflow-x-auto text-sm font-mono">
+                {currentQuestion.parsedSubtext?.code.split('\n').map((line, i) => (
+                  <div key={i} className="whitespace-pre">
+                    {line}
+                  </div>
+                ))}
+              </pre>
+            )}
+          </div>
+          
+          {parsedHeader.code && (
+            <div className="mb-4">
+              <pre className="bg-gray-100 p-4 rounded-md overflow-x-auto text-sm font-mono">
+                {parsedHeader.code.split('\n').map((line, i) => (
+                  <div key={i} className="whitespace-pre">
+                    {line}
+                  </div>
+                ))}
+              </pre>
+            </div>
+          )}
+
+          {/* Options */}
+          <div className="space-y-2">
+            {currentQuestion.options.map((option) => (
+              <label key={option.id} className="block">
+                <input
+                  type="radio"
+                  name={`question-${currentQuestion.id}`}
+                  value={option.id}
+                  checked={selectedOptionId === option.id}
+                  onChange={() => handleOptionSelect(option.id)}
+                  className="mr-2"
+                  disabled={currentQuestion.answered_correctly}
+                />
+                {option.option_text}
+              </label>
+            ))}
+          </div>
+
+{/* Code that helps with parsing question options
+  Having issues with moving the information to stay on the left side of the page.
+   It locks all question options to the right side of the page. 
+    */}
+
+{/* Options */}
+{/* <div className="space-y-3">
+  {currentQuestion.options.map((option) => {
+    const parsedOption = parseOptionText(option.option_text);
+    return (
+      <label 
+        key={option.id} 
+        className={`flex items-start p-2 rounded-md ${
+          selectedOptionId === option.id 
+            ? 'bg-blue-50 border border-blue-200' 
+            : 'hover:bg-gray-50'
+        }`}
+      >
+        <input
+          type="radio"
+          name={`question-${currentQuestion.id}`}
+          value={option.id}
+          checked={selectedOptionId === option.id}
+          onChange={() => handleOptionSelect(option.id)}
+          className="mt-1 mr-3"
+          disabled={currentQuestion.answered_correctly}
+        />
+        <div className="flex-1 min-w-0">
+          {parsedOption.label && (
+            <div className="font-medium text-gray-800">
+              {parsedOption.label}
+            </div>
+          )}
+          {parsedOption.code && (
+            <pre className="bg-gray-100 p-2 rounded-md overflow-x-auto text-sm font-mono mt-1">
+              {parsedOption.code}
+            </pre>
+          )}
+        </div>
+      </label>
+    );
+  })}
+</div> */}
+          
+          <button
+            onClick={handleAnswerSubmit}
+            className={`mt-4 px-4 py-2 rounded ${
+              currentQuestion.answered_correctly
+                ? "bg-gray-300 cursor-not-allowed"
+                : "bg-blue-500 hover:bg-blue-600 text-white"
+            }`}
+            disabled={currentQuestion.answered_correctly}
+          >
+            Submit Answer
+          </button>
+          
+          {isCorrect !== null && (
+            <p className={`mt-2 ${isCorrect ? "text-green-500" : "text-red-500"}`}>
+              {isCorrect ? "Correct!" : "Incorrect!"}
+            </p>
+          )}
+        </div>
+      </main>
+
+      {/* Chatbot Sidebar */}
+      {isChatbotOpen && (
+        <div className="fixed right-0 top-0 h-full w-96 bg-white shadow-lg border-l z-10 flex flex-col">
+          <div className="p-4 border-b flex justify-between items-center bg-blue-500 text-white">
+            <h3 className="text-lg font-bold">Learning Assistant</h3>
+            <button
+              onClick={() => setIsChatbotOpen(false)}
+              className="hover:text-gray-200"
+            >
+              ✕
+            </button>
+          </div>
+          
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            {chatbotMessages.map((message, index) => (
+              <div
+                key={index}
+                className={`flex ${
+                  message.role === "user" ? "justify-end" : "justify-start"
+                }`}
+              >
+                <div
+                  className={`max-w-xs p-3 rounded-lg ${
+                    message.role === "user"
+                      ? "bg-blue-500 text-white"
+                      : "bg-gray-200 text-gray-800"
+                  }`}
+                >
+                  <p>{message.content}</p>
+                  <p className="text-xs opacity-70 mt-1">
+                    {message.timestamp}
+                  </p>
+                </div>
+              </div>
+            ))}
+            {isChatbotLoading && (
+              <div className="flex justify-start">
+                <div className="bg-gray-200 text-gray-800 p-3 rounded-lg">
+                  <p>Thinking...</p>
+                </div>
+              </div>
+            )}
+          </div>
+          
+          <div className="p-4 border-t">
+            <form 
+              onSubmit={(e) => {
+                e.preventDefault();
+                const input = e.currentTarget.querySelector('input');
+                if (input && input.value.trim()) {
+                  handleChatbotMessageSubmit(input.value.trim());
+                  input.value = '';
+                }
+              }}
+              className="flex gap-2"
+            >
+              <input
+                type="text"
+                placeholder="Type your question..."
+                className="flex-1 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={isChatbotLoading}
+              />
+              <button
+                type="submit"
+                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-gray-400"
+                disabled={isChatbotLoading}
+              >
+                Send
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Chatbot Toggle Button */}
+      <button
+        onClick={handleChatbotButtonClick}
+        className={`fixed right-4 top-4 px-4 py-2 rounded shadow-lg z-20 ${
+          isChatbotOpen ? 'bg-gray-500 hover:bg-gray-600' : 'bg-purple-500 hover:bg-purple-600'
+        } text-white transition-colors`}
+      >
+        {isChatbotOpen ? "Close Assistant" : "Ask Chatbot for Help"}
+      </button>
+    </div>
+  );
+};
+
+export default QuestionsPage;
+
+
+
+    return (
+        <div id={`question-${q.id}`} className={`p-5 rounded-cus border ${isDarkMode ? "bg-[rgb(31,41,55)] border-gray-600" : "border-gray-300"}`}>
+            {/* Header Section */}
+            <div className="max-h-[300px] overflow-y-auto custom-scrollbar mb-4">
+                <h3 className={`text-xl font-bold ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+                    {q.header}
+                </h3>
+            </div>
+
+            {/* Subtext Section */}
+            <div
+                ref={subtextRef}
+                onScroll={handleSubtextScroll}
+                className="max-h-[230px] overflow-y-scroll custom-scrollbar mb-2 relative"
+            >
+                {parsedSubtext.text && (
+                    <p style={{ whiteSpace: "pre-line" }} className={`${isDarkMode ? "text-white" : "text-gray-700"} mb-2`}>
+                        {parsedSubtext.text}
+                    </p>
+                )}
+                
+                {parsedSubtext.code && (
+                    <pre className={`p-3 rounded-md overflow-x-auto text-sm font-mono ${
+                        isDarkMode ? "bg-gray-800 text-gray-100" : "bg-gray-100 text-gray-800"
+                    }`}>
+                        {parsedSubtext.code.split('\n').map((line, i) => (
+                            <div key={i} className="whitespace-pre">
+                                {line}
+                            </div>
+                        ))}
+                    </pre>
+                )}
+                
+                {showScrollIndicator && (
+                    <div className="absolute bottom-1 right-1">
+                        <ChevronDown className="w-4 h-4 text-gray-500 animate-bounce" />
+                    </div>
+                )}
+            </div>
+
+            {/* Options Section */}
+            <div className="space-y-3">
+                {q.options.map((option) => {
+                    const isSelected = selectedOptionId === option.id;
+                    let optionStyle = isDarkMode
+                        ? "bg-transparent border-gray-400 text-gray-200 hover:bg-gray-700"
+                        : "bg-transparent border-gray-300 text-gray-700 hover:bg-gray-100";
+                    
+                    if (isSelected && isCorrect !== null) {
+                        optionStyle = isCorrect
+                            ? "bg-green-500 border-green-500 text-white"
+                            : "bg-red-500 border-red-500 text-white";
+                    } else if (isSelected) {
+                        optionStyle = "bg-pink-500 border-pink-500 text-white";
+                    }
+                    
+                    return (
+                        <div
+                            key={option.id}
+                            onClick={() => handleOptionSelect(option.id)}
+                            className={`cursor-pointer p-3 border rounded-full transition-colors ${optionStyle}`}
+                        >
+                            <span style={{ whiteSpace: "pre-line" }}>
+                                {option.option_text.replace(/\\n/g, ",\t")}
+                            </span>
+                        </div>
+                    );
+                })}
+            </div>
+
+            <button
+                onClick={handleSubmit}
+                className="mt-6 bg-pink-500 hover:bg-pink-600 text-white font-bold py-2 px-6 rounded-full transition-colors"
+            >
+                Submit
+            </button>
+            
+            {isCorrect !== null && (
+                <p className={`mt-2 ${isCorrect ? "text-green-500" : "text-red-500"}`}>
+                    {isCorrect ? "Correct!" : "Incorrect!"}
+                </p>
+            )}
+        </div>
+    );
+};
+
+export default QuestionCard;
