@@ -52,7 +52,7 @@ def get_progress():
             JOIN progress p ON p.topic_id = t.id
             WHERE p.user_id = %s
             GROUP BY s.id, s.name
-            ORDER BY s.id  -- This will order results by subject_id in ascending order
+            ORDER BY s.id 
         """, (user_id,))
         progress_data = cursor.fetchall()
 
