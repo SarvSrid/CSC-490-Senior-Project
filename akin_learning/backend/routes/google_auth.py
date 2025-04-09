@@ -59,9 +59,9 @@ def google_callback():
         google_user_email = id_info.get('email')
         google_user_name = id_info.get('name')
 
-        # print("Google User ID:", google_user_id)
-        # print("Google User Email:", google_user_email)
-        # print("Google User Name:", google_user_name)
+        print("Google User ID:", google_user_id)
+        print("Google User Email:", google_user_email)
+        print("Google User Name:", google_user_name)
         # Sessions
         session['google_id'] = google_user_id
         session['email'] = google_user_email
@@ -80,11 +80,13 @@ def google_callback():
             cur.execute("SELECT * FROM user_profile WHERE google_id = %s",
                         (google_user_id,))
             user = cur.fetchone()
+            print(user)
             if user is None:
+                print("no user, creating")
                 cur.execute("INSERT INTO user_profile(google_id, email, username, password) VALUES (%s, %s, %s, NULL)",
                             (google_user_id, google_user_email, google_user_name))
-                user_id = cur.fetchone()[0]
                 conn.commit()
+                user_id = cur.fetchone()[0]
             else:
                 user_id = user[0]
 

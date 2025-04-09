@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import {useRouter} from "next/navigation";
 
 export default function SignInSignUp() {
-  // const router = useRouter();
+  const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
@@ -34,24 +35,30 @@ export default function SignInSignUp() {
 
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log("Email:", email, "Password:", password);
-    const response = await fetch("http://localhost:5000/auth/login", {
-      method: "POST",
-      credentials: 'include',
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({
-        email,
-        password
-      })
-    });
+    try {
+      console.log("Email:", email, "Password:", password);
+      const response = await fetch("http://localhost:5000/auth/login", {
+        method: "POST",
+        credentials: 'include',
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+          email,
+          password
+        })
+      });
 
-    const data = await response.json();
-    if (response.ok) {
-      alert("Login successful!");
-    } else {
-      alert(`Login failed: ${data.message}`);
+      if (response.ok) {
+        router.push('/user/dashboard'); // Client-side redirect
+      } else {
+        const errorData = await response.json();
+        setErrorMessage(errorData.message || "Login failed");
+      }
+    } catch (error) {
+      console.error("Sign-in error:", error); // Logs the error for debugging
+      setErrorMessage("Network error - please try again");
     }
   };
+
 
   const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -67,14 +74,14 @@ export default function SignInSignUp() {
 
     const data = await response.json();
     if (response.ok) {
-      alert("Signup successful!");
+      // Show the popup
+    setShowPopup(true);
+    // Hide the popup after 3 seconds
+    setTimeout(() => setShowPopup(false), 3000);
+    setErrorMessage(null)
     } else {
-      alert(`Signup failed: ${data.error}`);
+      setErrorMessage(`Signup failed: ${data.error}`);
     }
-    // // Show the popup
-    // setShowPopup(true);
-    // // Hide the popup after 3 seconds
-    // setTimeout(() => setShowPopup(false), 3000);
   };
 
   return (
@@ -116,6 +123,7 @@ export default function SignInSignUp() {
         <form onSubmit={handleSignUp}>
           <h1>Create Your Account</h1>
           <p className="p2">Fill in the details below to get started.</p>
+          {errorMessage && <p className="error-message">{errorMessage}</p>}
           <div className="form-row">
 
             <input

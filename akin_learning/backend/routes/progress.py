@@ -13,6 +13,7 @@ def get_progress():
     Fetch progress data for the user, grouped by subject.
     """
     user_id = request.args.get("user_id")  # Get user_id from query params
+    print(user_id)
     if not user_id:
         return jsonify({"error": "user_id is required"}), 400
 

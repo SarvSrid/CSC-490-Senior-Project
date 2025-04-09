@@ -108,7 +108,7 @@ def create_question():
         return jsonify({"error": str(e)}), 500
 
 
-@app.route('/api/questions/<int:question_id>/answer', methods=['POST'])
+@questions_blueprint.route('/api/questions/<int:question_id>/answer', methods=['POST'])
 def answer_question(question_id):
     """
     Handle user's answer to a question and update progress for the hardcoded user.
@@ -188,17 +188,18 @@ def answer_question(question_id):
 
 
 
-@app.route('/api/user-progress', methods=['GET'])
+@questions_blueprint.route('/user-progress', methods=['GET'])
 def get_user_progress():
     """
     Fetch user's progress including last visited questions for topics.
     Returns the top 3 most recently updated topics per subject
     that are not yet 100% complete.
     """
+    print(request.args.get("user_id"))
     try:
         # Get user_id from query parameters, default to TEST_USER_ID if missing
-        user_id = request.args.get("user_id", TEST_USER_ID)
-
+        user_id = request.args.get("user_id")
+        print(user_id)
         # Open database connection and create a cursor that returns dicts
         conn = get_db_connection()
         cursor = conn.cursor(cursor_factory=RealDictCursor)

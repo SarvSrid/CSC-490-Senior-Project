@@ -17,5 +17,5 @@ app_blueprints = [
     auth_blueprint,
     dashboard_blueprint,
     progress_blueprint,
-    # questions_blueprint,
+    questions_blueprint,
 ]

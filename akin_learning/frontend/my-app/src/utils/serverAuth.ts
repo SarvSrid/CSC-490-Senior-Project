@@ -1,15 +1,16 @@
-import { GetServerSidePropsContext, GetServerSidePropsResult } from 'next';
+// import { GetServerSidePropsContext, GetServerSidePropsResult } from 'next';
+import {cookies} from "next/headers";
+import {redirect} from "next/navigation";
 
-interface UserData {
-  id: string;
-  name: string;
-  email: string;
-}
+  export async function authenticateUser(): Promise<{
+    userData: {  id: string; username: string; email: string}
+  }> {
 
-  export async function fetchUserData(context: GetServerSidePropsContext): Promise<GetServerSidePropsResult<{ userData: UserData }>> {
-    const sessionCookie = context.req.cookies?.session;
+    const cookieStore = await cookies();
+    const sessionCookie = cookieStore.get('session')?.value;
 
-    const res = await fetch('http://localhost:5000/auth/validate', {
+    try {
+      const res = await fetch('http://localhost:5000/auth/validate', {
       credentials: 'include',
       headers: {
         Cookie: `session=${sessionCookie}`,
@@ -17,14 +18,13 @@ interface UserData {
     });
 
     if (res.status === 401) {
-      return {
-        redirect: {
-          destination: '/auth/signin',
-          permanent: false,
-        },
-      };
+      redirect('/auth/signin');
     }
 
-    const userData: UserData = await res.json();
-    return { props: { userData } };
-  }
+    return await res.json();
+    } catch (error) {
+      console.error('Authentication error:', error);
+      redirect('/auth/signin');
+    }
+}
+

@@ -29,6 +29,27 @@ def validate():
         if 'expires_in' not in session or datetime.now(timezone.utc) > session['expires_in']:
             return jsonify({"error": "Token expired"}), 401
 
+    conn = get_db_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("SELECT id, username, email FROM user_profile WHERE id = %s", (session['user_id'],))
+        user = cur.fetchone()
+        return jsonify(
+            {"userData": {
+                "id": user[0],
+                "username": user[1],
+                "email": user[2],
+            }}), 200
+    except Exception as e:
+        print("Database error:", e)
+        return jsonify({"error": "Database error"}), 500
+    finally:
+        cur.close()
+        conn.close()
+
+
+
+
     print("token valid")
     return {"message": "Token is valid"}, 200
 
@@ -47,21 +68,22 @@ def login():
 
     try:
         # Query for the user
-        cur.execute("SELECT id, email, password FROM user_profile WHERE email = %s", (email,))
+        cur.execute("SELECT id, username ,email, password FROM user_profile WHERE email = %s", (email,))
         user = cur.fetchone()
 
         if user:
-            user_id, email, hashed_password = user
+            user_id, username, email, hashed_password = user
             print(f"{user_id}, {email}, {hashed_password}")
             # Verify the password
             if bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8')):
                 session['user_id'] = user_id
                 session['email'] = email
+                session['username'] = username
 
-                print("session get:",session.get('user_id'))
-                print("session get:",session.get('email'))
-                print(session)
-                return redirect('http://localhost:5000/dashboard/home')
+                # print("session get:",session.get('user_id'))
+                # print("session get:",session.get('email'))
+                # print(session)
+                return jsonify({"success": True, "message": "Login successful"}), 200
             else:
                 return jsonify({"message": "Invalid username or password"}), 401
         else:
