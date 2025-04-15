@@ -251,6 +251,15 @@ const QuestionsPage: React.FC = () => {
           ? questions[index].answered_correctly
           : null
       );
+  
+      // Reset the chatbot conversation
+      setChatbotMessages([
+        {
+          role: "assistant",
+          content: "Hello! How can I assist you with this question?",
+          timestamp: new Date().toLocaleTimeString(),
+        },
+      ]);
     }
   };
 
