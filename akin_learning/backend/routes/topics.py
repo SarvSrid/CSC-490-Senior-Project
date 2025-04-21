@@ -1,38 +1,29 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, Blueprint
 from flask_cors import CORS
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import os
 
-app = Flask(__name__)
+from akin_learning.backend.routes.config.model import get_db_connection
 
-# Load database URL from environment variable
-DATABASE_URL = os.getenv("DATABASE_URL")
+topics_blueprint = Blueprint('topics_blueprint', __name__, url_prefix='/topics')
 
-# Print the database URI to verify
-print("DATABASE_URL:", DATABASE_URL, flush=True)
 
-# Initialize extensions
-CORS(app)  # Enable CORS
-
-# Database connection function
-def get_db_connection():
-    conn = psycopg2.connect(DATABASE_URL)
-    return conn
-
-@app.route('/api/topics', methods=['GET'])
+@topics_blueprint.route('/fetch', methods=['GET'])
 def get_topics():
     subject_id = request.args.get("subject_id")  # Get subject_id from query params
+    user_id = request.args.get("user_id")  # Get user_id from query params
+
     if not subject_id:
         return jsonify({"error": "subject_id is required"}), 400
+    if not user_id:
+        return jsonify({"error": "user_id is required"}), 400
 
     try:
+        user_id = int(user_id)  # Ensure user_id is an integer
         subject_id = int(subject_id)  # Convert subject_id to integer
     except ValueError:
-        return jsonify({"error": "subject_id must be a valid integer"}), 400
-
-    # Hardcoded user ID
-    current_user_id = 1
+        return jsonify({"error": "subject_id and user_id must be a valid integer"}), 400
 
     # Fetch topics with progress for the subject using raw SQL
     try:
@@ -58,7 +49,7 @@ def get_topics():
             t.id
         """
         
-        cursor.execute(query, (current_user_id, subject_id))
+        cursor.execute(query, (user_id, subject_id))
         topics = cursor.fetchall()
         cursor.close()
         conn.close()
@@ -80,6 +71,3 @@ def get_topics():
         for topic in topics
     ]
     return jsonify(response), 200
-
-if __name__ == '__main__':
-    app.run(debug=True, port=5002)

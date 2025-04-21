@@ -6,7 +6,7 @@ import os
 
 aichat_blueprint = Blueprint('openai', __name__, url_prefix='/api/openai')
 
-@aichat_blueprint.route('fetch', methods=['POST'])
+@aichat_blueprint.route('/fetch', methods=['POST'])
 def chatbot():
     """
     Handle chatbot requests.

@@ -69,7 +69,7 @@ export default function DashboardClient({userData, initialProgress}: DashboardCl
     { icon: Cpu, label: "AI Tutor", path: "/user/chatbot" },
     { icon: Settings, label: "Settings", path: "/user/settings" },
   ];
-  const bottomMenuItems = [{ icon: LogOut, label: "Log Out", path: "/auth/signin" }];
+  const bottomMenuItems = [{ icon: LogOut, label: "Log Out", path: "http://localhost:5000/auth/logout" }];
 
   // ProfileDropdown inner component.
   interface ProfileDropdownProps {
@@ -303,8 +303,8 @@ export default function DashboardClient({userData, initialProgress}: DashboardCl
       const minVal = sorted[0].average_progress;
       const lowest = sorted.filter((item) => item.average_progress === minVal);
       if (lowest.length >= 2) {
-        // If more than two share the same lowest progress, shuffle and pick two.
-        selectedSuggestions = lowest.sort(() => Math.random() - 0.5).slice(0, 2);
+        // If more than two share the same lowest progress, pick the first two.
+        selectedSuggestions = lowest.slice(0, 2);
       } else {
         selectedSuggestions = sorted.slice(0, 2);
       }

@@ -5,6 +5,7 @@ from akin_learning.backend.routes.dashboard import dashboard_blueprint
 from akin_learning.backend.routes.google_auth import google_auth_blueprint
 from akin_learning.backend.routes.progress import progress_blueprint
 from akin_learning.backend.routes.questions import questions_blueprint
+from akin_learning.backend.routes.topics import topics_blueprint
 
 # List of all blueprints
 api_blueprints = [
@@ -18,4 +19,5 @@ app_blueprints = [
     dashboard_blueprint,
     progress_blueprint,
     questions_blueprint,
+    topics_blueprint
 ]

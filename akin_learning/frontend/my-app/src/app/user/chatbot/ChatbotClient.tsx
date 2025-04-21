@@ -79,7 +79,7 @@ export default function ChatbotPage({userData}: ChatbotClientProp) {
     { icon: Settings, label: "Settings", path: "/user/settings" },
   ];
   const bottomMenuItems = [
-    { icon: LogOut, label: "Log Out", path: "/auth/signin" },
+    { icon: LogOut, label: "Log Out", path: "http://localhost:5000/auth/logout" },
   ];
 
   // Profile Dropdown Component
@@ -182,7 +182,7 @@ export default function ChatbotPage({userData}: ChatbotClientProp) {
       }
       setIsLoading(true);
       try {
-        const response = await fetch("http://localhost:5005/api/chatbotweb", {
+        const response = await fetch("http://localhost:5000/api/openai/dashboard/fetch", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

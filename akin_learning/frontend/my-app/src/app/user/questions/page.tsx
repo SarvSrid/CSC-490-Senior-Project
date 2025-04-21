@@ -15,14 +15,14 @@ export default async function Question({searchParams}: { searchParams: Record<st
   console.log("Auth Result:", authResult);
   // Fetch progress data on server
 
-  const questionData = await fetchQuestionsData(topic_id);
+  const questionData = await fetchQuestionsData(topic_id, authResult.userData.id);
 
   return <QuestionClient userData={authResult.userData} questions={questionData} />;
 }
 
-async function fetchQuestionsData(topic_id: string) {
+async function fetchQuestionsData(topic_id: string, user_id: string) {
 try {
-    const response = await fetch(`http://localhost:5000/api/questions?topic_id=${topic_id}`);
+    const response = await fetch(`http://localhost:5000/questions/fetch?topic_id=${topic_id}&user_id=${user_id}`);
     if (!response.ok) {
       throw new Error("Failed to fetch questions");
     }

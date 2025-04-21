@@ -10,16 +10,21 @@ questions_blueprint = Blueprint('questions_blueprint', __name__, url_prefix='/qu
 @questions_blueprint.route('/fetch', methods=['GET'])
 def get_questions():
     """
-    Fetch all main questions and their options for the hardcoded user and a specific topic.
+    Fetch all main questions and their options for a specific user and topic.
     """
     topic_id = request.args.get("topic_id")  # Get topic_id from query params
+    user_id = request.args.get("user_id")  # Get user_id from query params
+
     if not topic_id:
         return jsonify({"error": "topic_id is required"}), 400
+    if not user_id:
+        return jsonify({"error": "user_id is required"}), 400
 
     try:
         topic_id = int(topic_id)  # Ensure topic_id is an integer
+        user_id = int(user_id)  # Ensure user_id is an integer
     except ValueError:
-        return jsonify({"error": "topic_id must be a valid integer"}), 400
+        return jsonify({"error": "topic_id and user_id must be valid integers"}), 400
 
     try:
         conn = get_db_connection()
@@ -30,17 +35,12 @@ def get_questions():
             SELECT * FROM main_question
             WHERE user_id = %s AND topic_id = %s
             ORDER BY id
-        """, (TEST_USER_ID, topic_id))
+        """, (user_id, topic_id))
         main_questions = cursor.fetchall()
 
         response = []
         for main_question in main_questions:
             # Fetch options for the main question
-            # Normalize all line endings and ensure proper escaping
-            # header = main_question['header']
-            # header = header.replace('\r\n', '\n')  # Convert Windows line endings
-            # header = header.replace('\r', '\n')    # Convert old Mac line endings
-
             header = main_question['header'].replace('\n', '\\n')
 
             cursor.execute("""
@@ -49,7 +49,6 @@ def get_questions():
             """, (main_question['id'],))
             main_options = cursor.fetchall()
 
-            #                'header': main_question['header'].replace('\r\n', '\n'),
             response.append({
                 'id': main_question['id'],
                 'header': header,
@@ -73,12 +72,14 @@ def get_questions():
         return jsonify({"error": str(e)}), 500
 
 
-@questions_blueprint.route('/next', methods=['POST'])
+@questions_blueprint.route('/fetch', methods=['POST'])
 def create_question():
     """
     Create a new main question with options for the hardcoded user.
     """
     data = request.get_json()
+
+    user_id = data.get("user_id")  # Get user_id from query params
 
     try:
         conn = get_db_connection()
@@ -89,7 +90,7 @@ def create_question():
             INSERT INTO main_question (header, subtext, user_id, topic_id, difficulty_level, progress)
             VALUES (%s, %s, %s, %s, %s, %s)
             RETURNING id
-        """, (data['header'], data['subtext'], TEST_USER_ID, data['topic_id'], data['difficulty_level'], 0))
+        """, (data['header'], data['subtext'], user_id, data['topic_id'], data['difficulty_level'], 0))
         new_question_id = cursor.fetchone()[0]
 
         # Add options for the main question
@@ -108,12 +109,14 @@ def create_question():
         return jsonify({"error": str(e)}), 500
 
 
-@questions_blueprint.route('/api/questions/<int:question_id>/answer', methods=['POST'])
+@questions_blueprint.route('/<int:question_id>/answer', methods=['POST'])
 def answer_question(question_id):
     """
     Handle user's answer to a question and update progress for the hardcoded user.
     """
     data = request.get_json()
+
+    user_id = data.get("user_id")
 
     try:
         conn = get_db_connection()
@@ -139,14 +142,14 @@ def answer_question(question_id):
         cursor.execute("""
             SELECT * FROM progress
             WHERE user_id = %s AND topic_id = %s
-        """, (TEST_USER_ID, question['topic_id']))
+        """, (user_id, question['topic_id']))
         progress = cursor.fetchone()
 
         if not progress:
             cursor.execute("""
                 INSERT INTO progress (user_id, topic_id, active_questions, completed_questions)
                 VALUES (%s, %s, %s, %s)
-            """, (TEST_USER_ID, question['topic_id'], 0, 0))
+            """, (user_id, question['topic_id'], 0, 0))
             conn.commit()
 
         if is_correct:
@@ -154,7 +157,7 @@ def answer_question(question_id):
                 UPDATE progress
                 SET completed_questions = completed_questions + 1
                 WHERE user_id = %s AND topic_id = %s
-            """, (TEST_USER_ID, question['topic_id']))
+            """, (user_id, question['topic_id']))
             cursor.execute("""
                 UPDATE main_question
                 SET progress = 100
@@ -172,7 +175,7 @@ def answer_question(question_id):
             VALUES (%s, %s, %s, NOW())
             ON CONFLICT (user_id, topic_id) 
             DO UPDATE SET last_visited_question_id = %s, updated_at = NOW()
-        """, (TEST_USER_ID, question['topic_id'], question_id, question_id))
+        """, (user_id, question['topic_id'], question_id, question_id))
 
         conn.commit()
         cursor.close()
