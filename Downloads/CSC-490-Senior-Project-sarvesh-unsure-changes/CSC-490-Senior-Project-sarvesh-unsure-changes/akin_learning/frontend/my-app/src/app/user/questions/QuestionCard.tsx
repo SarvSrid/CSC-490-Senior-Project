@@ -65,9 +65,18 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
 
     return (
         <div
-            className={`p-5 rounded-cus border ${isDarkMode ? "bg-[rgb(31,41,55)] border-gray-600" : "border-gray-300"
-                }`}
-        >
+        className={`p-5 rounded-cus border transition-all duration-300 ${
+          isCorrect === true && hasSubmitted
+            ? "border-green-500 animate-glow-correct"
+            : isCorrect === false && hasSubmitted
+            ? "border-red-500 animate-shake-wrong"
+            : isDarkMode
+            ? "border-gray-600"
+            : "border-gray-300"
+        } ${isDarkMode ? "bg-[rgb(31,41,55)]" : ""}`}
+      >
+      
+
             {/* Expanded Question Header */}
             <div className="max-h-[300px] overflow-y-auto custom-scrollbar mb-4">
                 <h3 className={`text-xl font-bold ${isDarkMode ? "text-white" : "text-gray-900"}`}>
