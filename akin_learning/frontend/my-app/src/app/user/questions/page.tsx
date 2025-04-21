@@ -1,7 +1,9 @@
+// pages/QuestionsPage.tsx
+
 "use client";
 
-import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import React, { useState, useEffect, useRef } from "react";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   Home,
@@ -16,7 +18,7 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import Cookies from "js-cookie";
-import QuestionCard from "./QuestionCard"; // adjust the path as needed
+import QuestionCard from "./QuestionCard"; // adjust path if needed
 
 // ----------------------
 // ProfileDropdown Component
@@ -28,7 +30,6 @@ interface ProfileDropdownProps {
   closeProfile: () => void;
   buttonRef: React.RefObject<HTMLButtonElement | null>;
 }
-
 const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
   isProfileOpen,
   isDarkMode,
@@ -40,20 +41,18 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
   const router = useRouter();
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (e: MouseEvent) => {
       if (
         dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node) &&
+        !dropdownRef.current.contains(e.target as Node) &&
         buttonRef.current &&
-        !buttonRef.current.contains(event.target as Node)
+        !buttonRef.current.contains(e.target as Node)
       ) {
         closeProfile();
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
-    return () =>
-      document.removeEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isProfileOpen, closeProfile, buttonRef]);
 
   if (!isProfileOpen) return null;
@@ -74,22 +73,20 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
           </div>
         </div>
       </div>
-      <div className="p-2">
+      <div className="p-2 space-y-1">
         <button
           onClick={() => router.push("/user/settings/account")}
           className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${isDarkMode ? "text-white hover:bg-gray-700" : "hover:bg-gray-100"
             }`}
         >
-          <User className="inline w-5 h-5 mr-3" />
-          Edit Profile
+          <User className="inline w-5 h-5 mr-3" /> Edit Profile
         </button>
         <button
           onClick={() => router.push("/user/settings")}
           className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${isDarkMode ? "text-white hover:bg-gray-700" : "hover:bg-gray-100"
             }`}
         >
-          <Settings className="inline w-5 h-5 mr-3" />
-          Settings
+          <Settings className="inline w-5 h-5 mr-3" /> Settings
         </button>
         <button
           onClick={() => {
@@ -122,7 +119,6 @@ interface Option {
   option_text: string;
   is_correct: boolean;
 }
-
 interface Question {
   id: number;
   header: string;
@@ -130,10 +126,8 @@ interface Question {
   options: Option[];
   answered_correctly?: boolean | null;
   selected_option?: number | null;
-  // New flag to persist an incorrect submission.
   incorrect_submitted?: boolean;
 }
-
 interface ChatbotMessage {
   role: "user" | "assistant";
   content: string;
@@ -141,15 +135,15 @@ interface ChatbotMessage {
 }
 
 // ----------------------
-// Main QuestionsPage Component (Survey Layout with Integrated Chatbot)
+// Main Component
 // ----------------------
 const QuestionsPage: React.FC = () => {
   const router = useRouter();
   const pathname = usePathname() ?? "";
   const searchParams = useSearchParams();
-  const topic_id = searchParams ? searchParams.get("topic_id") : null;
+  const topic_id = searchParams?.get("topic_id") ?? null;
 
-  // Theme, profile, and sidebar state
+  // Theme, profile, sidebar
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -161,132 +155,102 @@ const QuestionsPage: React.FC = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOptionId, setSelectedOptionId] = useState<number | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
-  // Local flag for the current question submission.
   const [hasSubmitted, setHasSubmitted] = useState(false);
 
   // Chatbot state
   const [chatbotMessages, setChatbotMessages] = useState<ChatbotMessage[]>([]);
   const [isChatbotLoading, setIsChatbotLoading] = useState(false);
-
-  // Additional state for chat input
   const [input, setInput] = useState("");
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Refs for question indicators.
+  // Indicator refs
   const indicatorRefs = useRef<(HTMLButtonElement | null)[]>([]);
-
-  // Auto-scroll active indicator into view.
   const prevIndexRef = useRef(currentQuestionIndex);
+
+  // Auto-scroll active indicator
   useEffect(() => {
-    let targetIndex: number;
+    let target = currentQuestionIndex;
     if (currentQuestionIndex > prevIndexRef.current) {
-      targetIndex = currentQuestionIndex + 4;
-      if (targetIndex >= indicatorRefs.current.length) {
-        targetIndex = indicatorRefs.current.length - 1;
-      }
+      target = Math.min(currentQuestionIndex + 4, questions.length - 1);
     } else if (currentQuestionIndex < prevIndexRef.current) {
-      targetIndex = currentQuestionIndex - 4;
-      if (targetIndex < 0) {
-        targetIndex = 0;
-      }
-    } else {
-      targetIndex = currentQuestionIndex;
+      target = Math.max(currentQuestionIndex - 4, 0);
     }
-    indicatorRefs.current[targetIndex]?.scrollIntoView({
+    indicatorRefs.current[target]?.scrollIntoView({
       behavior: "smooth",
       block: "nearest",
       inline: "nearest",
     });
     prevIndexRef.current = currentQuestionIndex;
-  }, [currentQuestionIndex]);
+  }, [currentQuestionIndex, questions.length]);
 
-  // Sidebar navigation items (Subjects tab removed).
+  // Sidebar items
   const menuItems = [
     { icon: Home, label: "Home", path: "/user/dashboard" },
     { icon: Cpu, label: "AI Tutor", path: "/user/chatbot" },
     { icon: Settings, label: "Settings", path: "/user/settings" },
   ];
-  const bottomMenuItems = [
-    { icon: LogOut, label: "Log Out", path: "/auth/signin/signin1" },
-  ];
+  const bottomMenuItems = [{ icon: LogOut, label: "Log Out", path: "/auth/signin/signin1" }];
 
-  // Fetch questions from API using topic_id.
+
+  // Fetch questions
   useEffect(() => {
     if (!topic_id) {
-      console.error("topic_id is missing");
       setIsLoading(false);
       return;
     }
-    const fetchQuestions = async () => {
+    (async () => {
       try {
-        const response = await fetch(
-          `http://localhost:5003/api/questions?topic_id=${topic_id}`
-        );
-        if (!response.ok) {
-          throw new Error("Failed to fetch questions");
-        }
-        const data = await response.json();
-        const filteredQuestions = data.filter(
-          (q: { topic_id: number }) => q.topic_id === Number(topic_id)
-        );
-        setQuestions(filteredQuestions);
-      } catch (error) {
-        console.error("Error fetching questions:", error);
+        const res = await fetch(`http://localhost:5003/api/questions?topic_id=${topic_id}`);
+        const data = await res.json();
+        setQuestions(data.filter((q: any) => q.topic_id === Number(topic_id)));
+      } catch (err) {
+        console.error(err);
       } finally {
         setIsLoading(false);
       }
-    };
-    fetchQuestions();
+    })();
   }, [topic_id]);
 
-  // When changing questions, reset the submission flag.
-  const handleQuestionChange = (index: number) => {
-    if (index >= 0 && index < questions.length) {
-      setCurrentQuestionIndex(index);
-      setHasSubmitted(false);
-      const savedOption = questions[index].selected_option ?? null;
-      setSelectedOptionId(savedOption);
-      setIsCorrect(
-        typeof questions[index].answered_correctly === "boolean"
-          ? questions[index].answered_correctly
-          : null
-      );
-    }
+  // Change question
+  const handleQuestionChange = (i: number) => {
+    setCurrentQuestionIndex(i);
+    setHasSubmitted(false);
+    setIsCorrect(questions[i].answered_correctly ?? null);
+    setSelectedOptionId(questions[i].selected_option ?? null);
+
+    // reset the chat back to the initial greeting
+    setChatbotMessages([{
+      role: "assistant",
+      content: "Hello! How can I assist you with this question?",
+      timestamp: new Date().toLocaleTimeString(),
+    }]);
   };
 
-  // Prevent rapid navigation.
-  const [isNavigating, setIsNavigating] = useState(false);
-  const handleNav = (newIndex: number) => {
-    if (isNavigating) return;
-    setIsNavigating(true);
-    handleQuestionChange(newIndex);
-    setTimeout(() => setIsNavigating(false), 300);
-  };
-
-  // When the user selects an option, clear the incorrect flag for the current question.
+  // Select option
   const handleOptionSelect = (optionId: number) => {
     if (hasSubmitted && isCorrect === false) {
       setHasSubmitted(false);
       setIsCorrect(null);
       setQuestions((prev) =>
-        prev.map((q) =>
-          q.id === questions[currentQuestionIndex].id
-            ? { ...q, incorrect_submitted: false }
-            : q
+        prev.map((q, idx) =>
+          idx === currentQuestionIndex ? { ...q, incorrect_submitted: false } : q
         )
       );
     }
     setSelectedOptionId(optionId);
   };
 
+  // Submit answer (no auto-advance)
   // Submit answer and update UI.
   const handleSubmit = async () => {
     if (selectedOptionId === null) {
       alert("Please select an option before submitting.");
       return;
     }
+
     setHasSubmitted(true);
     const currentQuestion = questions[currentQuestionIndex];
+
     try {
       const response = await fetch(
         `http://localhost:5003/api/questions/${currentQuestion.id}/answer`,
@@ -296,16 +260,18 @@ const QuestionsPage: React.FC = () => {
           body: JSON.stringify({ selected_option_id: selectedOptionId }),
         }
       );
+
       if (!response.ok) {
         throw new Error("Failed to submit answer");
       }
+
       const result = await response.json();
       setIsCorrect(result.is_correct);
 
       if (result.is_correct) {
-        // Persist correct answers.
-        setQuestions((prev) =>
-          prev.map((q) =>
+        // Persist correct answer and check for “all correct”
+        setQuestions(prev =>
+          prev.map(q =>
             q.id === currentQuestion.id
               ? {
                 ...q,
@@ -316,119 +282,98 @@ const QuestionsPage: React.FC = () => {
               : q
           )
         );
-        if (currentQuestionIndex < questions.length - 1) {
-          setTimeout(() => {
-            handleQuestionChange(currentQuestionIndex + 1);
-            setSelectedOptionId(null);
-            setIsCorrect(null);
-          }, 500);
-        } else {
-          setTimeout(() => {
-            router.back();
-          }, 1500);
+
+        // If every question is now answered correctly, flip the allCorrect flag
+        const nowAllCorrect = questions
+          .map(q =>
+            q.id === currentQuestion.id
+              ? { ...q, answered_correctly: true }
+              : q
+          )
+          .every(q => q.answered_correctly);
+        if (nowAllCorrect) {
+
         }
+
+        // ← no more auto-advance!
       } else {
-        // Mark the question as having an incorrect submission so the indicator remains red.
-        setQuestions((prev) =>
-          prev.map((q) =>
+        // Mark incorrect so the indicator stays red
+        setQuestions(prev =>
+          prev.map(q =>
             q.id === currentQuestion.id
               ? { ...q, incorrect_submitted: true }
               : q
           )
         );
 
+        // Fire off your chatbot helper
         const explanationContext = `Help me understand this question: ${currentQuestion.header}. ${currentQuestion.subtext}. The options are: ${currentQuestion.options
-          .map((o) => o.option_text)
+          .map(o => o.option_text)
           .join(", ")}.`;
 
-
         await handleChatbotMessageSubmit(explanationContext);
-
-        // Incorrect feedback persists until a new option is selected.
       }
-
     } catch (error) {
       console.error("Error submitting answer:", error);
     }
   };
 
-  // ----------------------
-  // TypingIndicator Component
-  // ----------------------
+  // All-correct flag
+  const allCorrect = questions.length > 0 && questions.every((q) => q.answered_correctly === true);
+
+  // TypingIndicator & Chatbot
   const TypingIndicator: React.FC = () => (
     <div className="flex space-x-1 pt-2">
       <span
         className={`w-2 h-2 bg-transparent rounded-full animate-bounce border ${isDarkMode ? "border-gray-600" : "border-gray-300"
           }`}
-        style={{ animationDelay: "0s" }}
-      ></span>
+      />
       <span
         className={`w-2 h-2 bg-transparent rounded-full animate-bounce border ${isDarkMode ? "border-gray-600" : "border-gray-300"
           }`}
         style={{ animationDelay: "0.2s" }}
-      ></span>
+      />
       <span
         className={`w-2 h-2 bg-transparent rounded-full animate-bounce border ${isDarkMode ? "border-gray-600" : "border-gray-300"
           }`}
         style={{ animationDelay: "0.4s" }}
-      ></span>
+      />
     </div>
   );
-
-  // Chatbot Functions.
   const handleChatbotMessageSubmit = async (message: string) => {
     if (!message.trim()) return;
     setIsChatbotLoading(true);
     try {
-      const response = await fetch("http://localhost:5004/api/chatbot", {
+      const res = await fetch("http://localhost:5004/api/chatbot", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message, conversation_history: chatbotMessages }),
       });
-      if (!response.ok) {
-        throw new Error("Failed to send message to chatbot");
-      }
-      const data = await response.json();
+      const data = await res.json();
       setChatbotMessages(data.conversation_history);
-    } catch (error) {
-      console.error("Error sending message to chatbot:", error);
-      const errorMessage: ChatbotMessage = {
-        role: "assistant",
-        content: "Sorry, I encountered an error. Please try again.",
-        timestamp: new Date().toLocaleTimeString(),
-      };
-      setChatbotMessages((prev) => [...prev, errorMessage]);
+    } catch {
+      setChatbotMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: "Error.", timestamp: new Date().toLocaleTimeString() },
+      ]);
     } finally {
       setIsChatbotLoading(false);
     }
   };
-
-
   const handleSendMessage = () => {
-    if (input.trim() !== "") {
-      setChatbotMessages((prev) => [
-        ...prev,
-        { role: "user", content: input, timestamp: new Date().toLocaleTimeString() },
-      ]);
-      handleChatbotMessageSubmit(input);
-      setInput("");
-    }
+    if (!input.trim()) return;
+    setChatbotMessages((prev) => [
+      ...prev,
+      { role: "user", content: input, timestamp: new Date().toLocaleTimeString() },
+    ]);
+    handleChatbotMessageSubmit(input);
+    setInput("");
   };
-
-  // Theme and profile toggles.
-  const toggleTheme = () => {
-    setIsDarkMode(!isDarkMode);
-    document.body.classList.toggle("dark-mode");
-  };
-  const toggleProfile = () => setIsProfileOpen(!isProfileOpen);
-
-  // Auto-scroll chat to bottom.
   const messageEndRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatbotMessages]);
 
-  // Render Chatbot Card.
   const renderChatbotCard = () => (
     <div
       className={`bg-transparent rounded-cus p-6 border ${isDarkMode ? "border-gray-600" : "border-gray-300"
@@ -455,10 +400,11 @@ const QuestionsPage: React.FC = () => {
         />
       </div>
       <div className="h-100 overflow-y-auto space-y-4 mb-4">
-        {chatbotMessages.map((msg, index) => (
+        {chatbotMessages.map((msg, idx) => (
           <div
-            key={index}
-            className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+            key={idx}
+            className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"
+              }`}
           >
             <div
               className={`max-w-xs p-3 rounded-lg border ${msg.role === "user" && isDarkMode
@@ -528,10 +474,10 @@ const QuestionsPage: React.FC = () => {
         style={{ background: "var(--sidebar-bg)", color: "var(--sidebar-color)" }}
       >
         <nav className="mt-20">
-          {menuItems.map((item, index) => {
+          {menuItems.map((item, i) => {
             const isActive = pathname.startsWith(item.path);
             return (
-              <Link key={index} href={item.path}>
+              <Link key={i} href={item.path}>
                 <div
                   className={`flex items-center m-2 ${isSidebarCollapsed ? "px-4" : "px-6"
                     } py-3 rounded-lg transition-colors ${isActive ? "bg-white/20" : "hover:bg-white/10"
@@ -547,10 +493,10 @@ const QuestionsPage: React.FC = () => {
             );
           })}
           <div className="absolute bottom-0 left-0 right-0 border-t border-white/10">
-            {bottomMenuItems.map((item, index) => {
+            {bottomMenuItems.map((item, i) => {
               const isActive = pathname.startsWith(item.path);
               return (
-                <Link key={index} href={item.path}>
+                <Link key={i} href={item.path}>
                   <div
                     className={`flex items-center m-2 ${isSidebarCollapsed ? "px-4" : "px-6"
                       } py-3 rounded-lg transition-colors ${isActive ? "bg-white/20" : "hover:bg-white/10"
@@ -584,18 +530,16 @@ const QuestionsPage: React.FC = () => {
           </button>
           <span className="text-xl font-bold">Akin Learning</span>
         </div>
-        <div>
-          <button
-            ref={profileButtonRef}
-            onClick={toggleProfile}
-            className={`flex items-center px-4 py-2 rounded-full ${isDarkMode ? "bg-gray-700 hover:bg-gray-600" : "bg-gray-100 hover:bg-gray-200"
-              } transition-colors`}
-          >
-            <User className="w-8 h-8 rounded-full mr-2" />
-            <span className="font-medium">User123</span>
-            <ChevronDown className="w-4 h-4 ml-2" />
-          </button>
-        </div>
+        <button
+          ref={profileButtonRef}
+          onClick={() => setIsProfileOpen(!isProfileOpen)}
+          className={`flex items-center px-4 py-2 rounded-full ${isDarkMode ? "bg-gray-700 hover:bg-gray-600" : "bg-gray-100 hover:bg-gray-200"
+            } transition-colors`}
+        >
+          <User className="w-8 h-8 rounded-full mr-2" />
+          <span className="font-medium">User123</span>
+          <ChevronDown className="w-4 h-4 ml-2" />
+        </button>
       </header>
 
       {/* Profile Dropdown */}
@@ -603,7 +547,7 @@ const QuestionsPage: React.FC = () => {
         <ProfileDropdown
           isProfileOpen={isProfileOpen}
           isDarkMode={isDarkMode}
-          toggleTheme={toggleTheme}
+          toggleTheme={() => setIsDarkMode(!isDarkMode)}
           closeProfile={() => setIsProfileOpen(false)}
           buttonRef={profileButtonRef}
         />
@@ -621,15 +565,12 @@ const QuestionsPage: React.FC = () => {
             Questions:
           </h2>
           <hr
-            className={`w-full border-t ${isDarkMode ? "border-gray-600" : "border-gray-300"
-              }`}
+            className={`w-full border-t ${isDarkMode ? "border-gray-600" : "border-gray-300"}`}
           />
           <div className="mb-4">
             <button
               onClick={() => router.back()}
-              className={`px-1 mt-4 py-1 text-sm rounded-full transition-colors border ${isDarkMode
-                  ? "border-gray-600 text-white hover:bg-gray-600"
-                  : "border-gray-300 text-gray-800 hover:bg-gray-300"
+              className={`px-1 mt-4 py-1 text-sm rounded-full transition-colors border ${isDarkMode ? "border-gray-600 text-white hover:bg-gray-600" : "border-gray-300 text-gray-800 hover:bg-gray-300"
                 }`}
             >
               <ArrowLeft className="w-10 h-6 rounded-full mr-2" />
@@ -640,25 +581,22 @@ const QuestionsPage: React.FC = () => {
         {/* Question Indicators */}
         <div className="w-1/2 mx-auto2 overflow-x-auto custom-scrollbar">
           <div className="flex space-x-2 pb-2">
-            {questions.map((q, index) => {
+            {questions.map((q, idx) => {
               let indicatorColor = "bg-gray-200 text-black";
-              if (q.answered_correctly === true) {
-                indicatorColor = "bg-green-500 text-white";
-              } else if (q.incorrect_submitted) {
-                indicatorColor = "bg-red-500 text-white";
-              }
-              const isActive = currentQuestionIndex === index;
+              if (q.answered_correctly === true) indicatorColor = "bg-green-500 text-white";
+              else if (q.incorrect_submitted) indicatorColor = "bg-red-500 text-white";
+              const isActive = idx === currentQuestionIndex;
               return (
                 <button
-                  key={index}
+                  key={idx}
                   ref={(el) => {
-                    indicatorRefs.current[index] = el;
+                    indicatorRefs.current[idx] = el;
                   }}
-                  onClick={() => handleQuestionChange(index)}
+                  onClick={() => handleQuestionChange(idx)}
                   className={`transition-transform duration-200 transform hover:scale-105 ${isActive ? "w-14 h-14 -translate-y-3" : "w-10 h-10"
                     } rounded-full flex-shrink-0 flex items-center justify-center ${indicatorColor}`}
                 >
-                  {index + 1}
+                  {idx + 1}
                 </button>
               );
             })}
@@ -677,6 +615,7 @@ const QuestionsPage: React.FC = () => {
                 hasSubmitted={hasSubmitted}
                 handleOptionSelect={handleOptionSelect}
                 handleSubmit={handleSubmit}
+                allCorrect={allCorrect}
               />
             </div>
           )}

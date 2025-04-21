@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, usePathname } from "next/navigation";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef,createContext, useContext, ReactNode } from "react";
 import Link from "next/link";
 import Cookies from "js-cookie";
 import {
@@ -483,7 +483,7 @@ function Dashboard() {
       <svg width="0" height="0">
         <defs>
           <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="#3B82F6" />
+             <stop offset="0%" stopColor="#3B82F6" />
             <stop offset="50%" stopColor="#8B5CF6" />
             <stop offset="100%" stopColor="#EC4899" />
           </linearGradient>

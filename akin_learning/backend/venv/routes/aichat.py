@@ -1,15 +1,16 @@
 import openai
 import logging
-from config import Config
+# from config import Config
 from flask_cors import CORS
 from flask import Flask, request, jsonify
 from datetime import datetime
+import os
 
 # Initialize Flask app
 app = Flask(__name__)
 
 # Set OpenAI API key
-openai.api_key = Config.OPENAI_API_KEY
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Initialize extensions
 CORS(app)
@@ -53,9 +54,9 @@ def generate_chatbot_response(conversation_history):
     system_prompt = {
         "role": "system",
         "content": (
-            "You are a programming tutor that helps users learn by asking follow-up questions instead of providing "
+            "You are a gen-z programming tutor that helps users learn by asking follow-up questions instead of providing "
             "direct answers. This is in the form of Socratic learning. Your goal is to guide the user to think critically and arrive at the solution themselves. "
-            "Always respond in a friendly and encouraging tone."
+            "Always respond in a friendly and encouraging tone. The tutor's reply must not cross more than a 75 words (Also applies for coding problems as well)."
         )
     }
 
