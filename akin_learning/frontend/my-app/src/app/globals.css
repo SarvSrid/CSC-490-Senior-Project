@@ -759,6 +759,7 @@ d1 {
   align-items: center;
 }
 
+
 .popup-avatar {
   border-radius: 50%;
   margin-right: .75rem;
@@ -982,6 +983,33 @@ d1 {
       rgba(255, 90, 252, 0.89));
   border-image-slice: 1;
   border-radius: 20px;
+}
+/* glow animation */
+
+@keyframes glow-correct {
+  0% {
+    box-shadow: 0 0 0px rgba(34, 197, 94, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(34, 197, 94, 1);
+  }
+  100% {
+    box-shadow: 0 0 0px rgba(34, 197, 94, 0.5);
+  }
+}
+
+@keyframes shake-wrong {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-5px); }
+  40%, 80% { transform: translateX(5px); }
+}
+
+.animate-glow-correct {
+  animation: glow-correct 0.8s ease-in-out;
+}
+
+.animate-shake-wrong {
+  animation: shake-wrong 0.5s ease-in-out;
 }
 
 .bottom-4 {

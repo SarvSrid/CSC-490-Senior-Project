@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import Cookies from "js-cookie";
 import QuestionCard from "./QuestionCard"; // adjust the path as needed
+// import confetti from "canvas-confetti";
 
 // ----------------------
 // ProfileDropdown Component
@@ -149,6 +150,10 @@ const QuestionsPage: React.FC = () => {
   const searchParams = useSearchParams();
   const topic_id = searchParams ? searchParams.get("topic_id") : null;
 
+  const [showTransitionMessage, setShowTransitionMessage] = useState(false);
+
+  const [showCongratsMessage, setShowCongratsMessage] = useState(false);
+ 
   // Theme, profile, and sidebar state
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -252,7 +257,7 @@ const QuestionsPage: React.FC = () => {
           : null
       );
   
-      // Reset the chatbot conversation
+      // Reset the chatbot conversation history
       setChatbotMessages([
         {
           role: "assistant",
@@ -312,6 +317,12 @@ const QuestionsPage: React.FC = () => {
       setIsCorrect(result.is_correct);
 
       if (result.is_correct) {
+          // 🎉 Confetti celebration
+  // confetti({
+  //   particleCount: 200,
+  //   spread: 80,
+  //   origin: { y: 0.6 },
+  // });
         // Persist correct answers.
         setQuestions((prev) =>
           prev.map((q) =>
@@ -325,17 +336,50 @@ const QuestionsPage: React.FC = () => {
               : q
           )
         );
+        if (result.is_correct) {
+          // confetti({ particleCount: 200, spread: 80, origin: { y: 0.6 } });
+          setShowTransitionMessage(true); // ⬅️ Show the message
+        
+          setQuestions((prev) =>
+            prev.map((q) =>
+              q.id === currentQuestion.id
+                ? {
+                    ...q,
+                    answered_correctly: true,
+                    selected_option: selectedOptionId,
+                    incorrect_submitted: false,
+                  }
+                : q
+            )
+          );
+        
+          if (currentQuestionIndex < questions.length - 1) {
+            setTimeout(() => {
+              handleQuestionChange(currentQuestionIndex + 1);
+              setSelectedOptionId(null);
+              setIsCorrect(null);
+              setShowTransitionMessage(false); // ⬅️ Hide it after transition
+            }, 4000);
+          } else {
+            setTimeout(() => {
+              router.back();
+            }, 1500);
+          }
+        }
+         
         if (currentQuestionIndex < questions.length - 1) {
           setTimeout(() => {
             handleQuestionChange(currentQuestionIndex + 1);
             setSelectedOptionId(null);
             setIsCorrect(null);
-          }, 500);
+          }, 4000);
         } else {
+          setShowCongratsMessage(true); // 🎉 Show Congrats Message
           setTimeout(() => {
             router.back();
-          }, 1500);
+          }, 4000); // ⏳ Give them time to see the message
         }
+        
       } else {
         // Mark the question as having an incorrect submission so the indicator remains red.
         setQuestions((prev) =>
@@ -674,24 +718,33 @@ const QuestionsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Question Card */}
-        <div className="flex flex-col md:flex-row gap-4 items-start">
-          {questions.length > 0 && (
-            <div className="md:w-1/2 w-full" style={{ width: "65%" }}>
-              <QuestionCard
-                q={questions[currentQuestionIndex]}
-                isDarkMode={isDarkMode}
-                selectedOptionId={selectedOptionId}
-                isCorrect={isCorrect}
-                hasSubmitted={hasSubmitted}
-                handleOptionSelect={handleOptionSelect}
-                handleSubmit={handleSubmit}
-              />
-            </div>
-          )}
-        </div>
-      </div>
+     {/* Question Card */}
+<div className="flex flex-col md:flex-row gap-4 items-start">
+  {questions.length > 0 && (
+    <div className="md:w-1/2 w-full" style={{ width: "65%" }}>
+      <QuestionCard
+        q={questions[currentQuestionIndex]}
+        isDarkMode={isDarkMode}
+        selectedOptionId={selectedOptionId}
+        isCorrect={isCorrect}
+        hasSubmitted={hasSubmitted}
+        handleOptionSelect={handleOptionSelect}
+        handleSubmit={handleSubmit}
+      />
+    </div>
+  )}
+</div>
 
+{/* ✅ 🎉 Congrats Message */}
+{showCongratsMessage && (
+  <div className="text-3xl font-bold text-green-500 mt-6 text-center animate-pulse">
+    🎉 Congrats, you finished the topic!
+  </div>
+)}
+
+      </div> 
+
+     
       {/* Fixed Chat Card – integrated chat UI */}
       {renderChatbotCard()}
 
