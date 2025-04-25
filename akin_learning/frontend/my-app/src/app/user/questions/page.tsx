@@ -376,16 +376,8 @@ const QuestionsPage: React.FC = () => {
 
   const renderChatbotCard = () => (
     <div
-      className={`bg-transparent rounded-cus p-6 border ${isDarkMode ? "border-gray-600" : "border-gray-300"
-        }`}
-      style={{
-        position: "fixed",
-        bottom: 30,
-        right: 40,
-        height: "780px",
-        width: "400px",
-        zIndex: 20,
-      }}
+      className={`flex flex-col bg-transparent rounded-cus p-6 border 
+              overflow-hidden h-full ${isDarkMode ? "border-gray-600" : "border-gray-300"}`}
     >
       <div className="w-full mb-6 px-1">
         <h2
@@ -399,7 +391,7 @@ const QuestionsPage: React.FC = () => {
             }`}
         />
       </div>
-      <div className="h-100 overflow-y-auto space-y-4 mb-4">
+      <div className="flex-1 overflow-y-auto space-y-4 mb-4 max-h-[60vh]">
         {chatbotMessages.map((msg, idx) => (
           <div
             key={idx}
@@ -408,10 +400,10 @@ const QuestionsPage: React.FC = () => {
           >
             <div
               className={`max-w-xs p-3 rounded-lg border ${msg.role === "user" && isDarkMode
-                  ? "self-end bg-gradient-to-r from-purple-500 to-blue-500 text-white border-gray-600"
-                  : msg.role === "user"
-                    ? "self-end bg-gradient-to-r from-purple-500 to-blue-500 text-white border-gray-300"
-                    : "self-start bg-transparent border-gray-300"
+                ? "self-end bg-gradient-to-r from-purple-500 to-blue-500 text-white border-gray-600"
+                : msg.role === "user"
+                  ? "self-end bg-gradient-to-r from-purple-500 to-blue-500 text-white border-gray-300"
+                  : "self-start bg-transparent border-gray-300"
                 }`}
             >
               <p>{msg.content}</p>
@@ -431,22 +423,22 @@ const QuestionsPage: React.FC = () => {
         )}
         <div ref={messageEndRef} />
       </div>
-      <div className="relative w-full px-3 py-33">
+      <div className="mt-auto relative">
         <textarea
           ref={textAreaRef}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Need Help?"
           className={`w-full resize-none border border-gray-300 rounded-full pr-16 pl-1 pt-55 py-1 min-h-[40px] max-h-52 overflow-auto custom-scrollbar ${isDarkMode
-              ? "bg-gray-900 text-white placeholder-gray-400"
-              : "bg-white text-gray-800 placeholder-gray-500"
+            ? "bg-gray-900 text-white placeholder-gray-400"
+            : "bg-white text-gray-800 placeholder-gray-500"
             }`}
           disabled={isChatbotLoading}
         />
         <button
           onClick={handleSendMessage}
           disabled={isChatbotLoading}
-          className="absolute bottom-11 right-6 bg-pink-500 text-white px-3 py-1 rounded-full"
+          className="absolute bottom-111 right-7 bg-pink-500 text-white px-3 py-1 rounded-full"
         >
           Send
         </button>
@@ -517,8 +509,8 @@ const QuestionsPage: React.FC = () => {
 
       {/* Header */}
       <header
-        className={`fixed top-0 left-0 right-0 ${isDarkMode ? "bg-gray-800" : "bg-gray-100"
-          } shadow-md z-30 flex items-center justify-between`}
+        className={`fixed top-0 left-0 right-0 ${isDarkMode ? "bg-gray-800" : "bg-white"
+          } shadow-sl z-30 flex items-center justify-between`}
         style={{ padding: "8px 24px 8px 16px" }}
       >
         <div className="flex items-center space-x-2">
@@ -578,52 +570,64 @@ const QuestionsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Question Indicators */}
-        <div className="w-1/2 mx-auto2 overflow-x-auto custom-scrollbar">
-          <div className="flex space-x-2 pb-2">
-            {questions.map((q, idx) => {
-              let indicatorColor = "bg-gray-200 text-black";
-              if (q.answered_correctly === true) indicatorColor = "bg-green-500 text-white";
-              else if (q.incorrect_submitted) indicatorColor = "bg-red-500 text-white";
-              const isActive = idx === currentQuestionIndex;
-              return (
-                <button
-                  key={idx}
-                  ref={(el) => {
-                    indicatorRefs.current[idx] = el;
-                  }}
-                  onClick={() => handleQuestionChange(idx)}
-                  className={`transition-transform duration-200 transform hover:scale-105 ${isActive ? "w-14 h-14 -translate-y-3" : "w-10 h-10"
-                    } rounded-full flex-shrink-0 flex items-center justify-center ${indicatorColor}`}
-                >
-                  {idx + 1}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        
+        {/* Q & Chat side by side */}
+<div className="flex flex-col md:flex-row items-start gap-6 mb-4">
+  {/* Question area */}
+  {questions.length > 0 && (
+    <div className="flex-1 flex flex-col gap-4 mt-699">
+      {/* ── Question Nav Buttons ── */}
+      <div className="overflow-x-auto pb-2 custom-scrollbar">
+  <div className="flex space-x-2">
+    {questions.map((q, idx) => {
+      const isActive = idx === currentQuestionIndex;
+      let bg = "bg-gray-200 text-black";
+      if (q.answered_correctly) bg = "bg-green-500 text-white";
+      else if (q.incorrect_submitted) bg = "bg-red-500 text-white";
 
-        {/* Question Card */}
-        <div className="flex flex-col md:flex-row gap-4 items-start">
-          {questions.length > 0 && (
-            <div className="md:w-1/2 w-full" style={{ width: "65%" }}>
-              <QuestionCard
-                q={questions[currentQuestionIndex]}
-                isDarkMode={isDarkMode}
-                selectedOptionId={selectedOptionId}
-                isCorrect={isCorrect}
-                hasSubmitted={hasSubmitted}
-                handleOptionSelect={handleOptionSelect}
-                handleSubmit={handleSubmit}
-                allCorrect={allCorrect}
-              />
-            </div>
-          )}
-        </div>
+      return (
+        <button
+          key={idx}
+          ref={el => {
+            indicatorRefs.current[idx] = el;
+          }}
+          onClick={() => handleQuestionChange(idx)}
+          className={`
+            transition-transform duration-200 transform hover:scale-105
+            ${isActive ? "w-14 h-14 -translate-y-3" : "w-10 h-10"}
+            rounded-full flex-shrink-0 flex items-center justify-center
+            ${bg}
+          `}
+        >
+          {idx + 1}
+        </button>
+      );
+    })}
+  </div>
+</div>
+
+      {/* ── Question Card ── */}
+      <QuestionCard
+        q={questions[currentQuestionIndex]}
+        isDarkMode={isDarkMode}
+        selectedOptionId={selectedOptionId}
+        isCorrect={isCorrect}
+        hasSubmitted={hasSubmitted}
+        handleOptionSelect={handleOptionSelect}
+        handleSubmit={handleSubmit}
+        allCorrect={allCorrect}
+      />
+    </div>
+  )}
+
+  {/* Chat area – fixed 76vh, inner scroll */}
+  <div className="flex-1 max-w-md h-[76vh]">
+    {renderChatbotCard()}
+  </div>
+</div>
       </div>
 
-      {/* Fixed Chat Card – integrated chat UI */}
-      {renderChatbotCard()}
+
 
       <svg width="0" height="0">
         <defs>

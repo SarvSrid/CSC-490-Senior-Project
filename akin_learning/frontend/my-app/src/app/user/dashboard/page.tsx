@@ -195,9 +195,10 @@ function Dashboard() {
     const recentTopics = item.recentTopics || [];
     return (
       <div
-        className={`p-6 rounded-2xl transition-colors duration-300 shadow-none border ${isDarkMode ? "border-gray-600" : "border-gray-300"} bg-transparent`}
-        style={{ height: "460px" }}
-      >
+      className={`p-6 pb-8 flex flex-col rounded-2xl border bg-transparent ${
+        isDarkMode ? "border-gray-600" : "border-gray-300"
+      }`}
+    >
         {/* Top Section with Start Button */}
         <div className="flex justify-between items-center mb-4">
           <h3 className={`text-lg font-medium ${isDarkMode ? "text-white" : "text-gray-800"}`}>{item.subject}</h3>
@@ -279,9 +280,9 @@ function Dashboard() {
   const ChartCard: React.FC<{ data: ProgressData[]; isDarkMode: boolean }> = ({ data, isDarkMode }) => {
     return (
       <div
-        className={`p-6 rounded-2xl transition-colors duration-300 shadow-none border ${isDarkMode ? "border-gray-600" : "border-gray-300"} bg-transparent`}
-        style={{ height: "250px", width: "35%" }}
-      >
+        className={`p-6 rounded-2xl border ${isDarkMode ? "border-gray-600" : "border-gray-300"} 
+                    bg-transparent h-auto w-full`}
+       >
         <div className="flex items-center my-44">
           <div className="flex-grow border-t border-gray-300" />
           <span className={`text-lg mx-2 font-medium ${isDarkMode ? "text-white" : "text-gray-800"}`}>
@@ -347,9 +348,9 @@ function Dashboard() {
     }
     return (
       <div
-        className={`p-6 rounded-2xl transition-colors duration-300 shadow-none border ${isDarkMode ? "border-gray-600" : "border-gray-300"} bg-transparent`}
-        style={{ height: "190px", width: "23%" }}
-      >
+   className={`p-6 rounded-2xl border ${isDarkMode ? "border-gray-600" : "border-gray-300"} 
+               bg-transparent h-auto w-full`}
+ >
         <div className="flex items-center my-44">
           <div className="flex-grow border-t border-gray-300" />
           <span className={`text-lg mx-2 font-medium ${isDarkMode ? "text-white" : "text-gray-800"}`}>Improvement Suggestions</span>
@@ -422,7 +423,7 @@ function Dashboard() {
 
       {/* Header */}
       <header
-        className={`fixed top-0 left-0 right-0 ${isDarkMode ? "bg-gray-800" : "bg-gray-100"} shadow-md z-30 flex items-center justify-between`}
+        className={`fixed top-0 left-0 right-0 ${isDarkMode ? "bg-gray-800" : "bg-white"} shadow-sl z-30 flex items-center justify-between`}
         style={{ padding: "8px 24px 8px 16px" }}
       >
         <div className="flex items-center space-x-2">
@@ -472,11 +473,19 @@ function Dashboard() {
             <ProgressCard key={index} item={item} />
           ))}
         </div>
-        {/* New Chart and Improvement Cards beside each other */}
-        <div className="mt-11 flex justify-left gap-77">
-          <ChartCard data={progress} isDarkMode={isDarkMode} />
-          <ImprovementCard data={progress} isDarkMode={isDarkMode} />
-        </div>
+        {/* Chart & Improvement Section */}
+{/* Chart & Improvement Section */}
+<div className="mt-11 flex flex-wrap gap-98">
+  {/* Overview chart: fixed 300px */}
+  <div className="flex-none w-full md:w-[600px]">
+    <ChartCard data={progress} isDarkMode={isDarkMode} />
+  </div>
+
+  {/* Improvement: fixed 240px */}
+  <div className="flex-none w-full md:w-[300px]">
+    <ImprovementCard data={progress} isDarkMode={isDarkMode} />
+  </div>
+</div>
       </div>
 
       {/* SVG Gradient Definition */}

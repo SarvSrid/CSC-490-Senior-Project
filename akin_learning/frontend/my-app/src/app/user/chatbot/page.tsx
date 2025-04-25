@@ -253,7 +253,7 @@ const ChatbotPage: React.FC = () => {
 
       {/* Header */}
       <header
-        className={`fixed top-0 left-0 right-0 ${isDarkMode ? "bg-gray-800" : "bg-gray-100"} shadow-md z-30 flex items-center justify-between`}
+        className={`fixed top-0 left-0 right-0 ${isDarkMode ? "bg-gray-800" : "bg-white"} shadow-sl z-30 flex items-center justify-between`}
         style={{ padding: "8px 24px 8px 16px" }}
       >
         <div className="flex items-center space-x-2">
@@ -268,7 +268,7 @@ const ChatbotPage: React.FC = () => {
         <div>
           <button
             ref={profileButtonRef}
-            onClick={toggleProfile}
+            onClick={() => setIsProfileOpen(!isProfileOpen)}
             className={`flex items-center px-4 py-2 rounded-full ${isDarkMode ? "bg-gray-700 hover:bg-gray-600" : "bg-gray-100 hover:bg-gray-200"} transition-colors`}
           >
             <User className="w-8 h-8 rounded-full mr-2" />
@@ -277,7 +277,7 @@ const ChatbotPage: React.FC = () => {
           </button>
         </div>
       </header>
-
+      
       {/* Profile Dropdown */}
       {isProfileOpen && (
         <ProfileDropdown

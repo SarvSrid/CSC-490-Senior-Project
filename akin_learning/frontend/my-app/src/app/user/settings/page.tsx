@@ -203,8 +203,8 @@ function SettingsPage() {
 
       {/* Header */}
       <header
-        className={`fixed top-0 left-0 right-0 ${isDarkMode ? "bg-gray-800" : "bg-gray-100"
-          } shadow-md z-30 flex items-center justify-between`}
+        className={`fixed top-0 left-0 right-0 ${isDarkMode ? "bg-gray-800" : "bg-white"
+          } shadow-sl z-30 flex items-center justify-between`}
         style={{ padding: "8px 24px 8px 16px" }}
       >
         <div className="flex items-center space-x-2">

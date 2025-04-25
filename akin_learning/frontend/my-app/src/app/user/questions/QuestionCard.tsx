@@ -1,3 +1,4 @@
+
 // pages/QuestionCard.tsx
 
 "use client";
@@ -53,21 +54,34 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
   allCorrect,
 }) => {
   const router = useRouter();
-  const [showConfetti, setShowConfetti] = useState(false);
-  const [showScrollIndicator, setShowScrollIndicator] = useState(false);
   const subtextRef = useRef<HTMLDivElement>(null);
   const parsed = parseSubtext(q.subtext);
 
-  // celebration
+  // track viewport size for full-screen confetti
+  const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
+  useEffect(() => {
+    const updateSize = () => {
+      setWindowSize({ width: window.innerWidth, height: window.innerHeight });
+    };
+    updateSize();
+    window.addEventListener("resize", updateSize);
+    return () => window.removeEventListener("resize", updateSize);
+  }, []);
+
+  // confetti key to force remount each trigger
+  const [confettiKey, setConfettiKey] = useState(0);
+  const [showConfetti, setShowConfetti] = useState(false);
   useEffect(() => {
     if (hasSubmitted && isCorrect) {
+      setConfettiKey((c) => c + 1);
       setShowConfetti(true);
-      const timer = setTimeout(() => setShowConfetti(false), 3000);
+      const timer = setTimeout(() => setShowConfetti(false), 2500);
       return () => clearTimeout(timer);
     }
   }, [hasSubmitted, isCorrect]);
 
-  // scroll indicator
+  // scroll indicator for long subtext
+  const [showScrollIndicator, setShowScrollIndicator] = useState(false);
   useEffect(() => {
     if (subtextRef.current) {
       setShowScrollIndicator(
@@ -77,27 +91,40 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
   }, [q.subtext]);
 
   const handleSubtextScroll = () => {
-    if (subtextRef.current?.scrollTop! > 0) {
-      setShowScrollIndicator(false);
-    }
+    if (subtextRef.current?.scrollTop! > 0) setShowScrollIndicator(false);
   };
 
   return (
     <div className="relative">
-      {showConfetti && <Confetti recycle={false} numberOfPieces={200} />}
+      {showConfetti && (
+        <Confetti
+          key={confettiKey}
+          width={windowSize.width}
+          height={windowSize.height}
+          recycle={false}
+          numberOfPieces={60}
+          style={{ position: "fixed", top: 0, left: 0, pointerEvents: "none" }}
+          // make them fall quicker:
+          gravity={0.9}
+          // let them fade out a bit faster
+          tweenDuration={1000}
+        />
+      )}
 
       <div
-        className={`p-5 rounded-cus border ${
-          q.answered_correctly
+        className={`p-5 rounded-cus border ${q.answered_correctly
             ? "border-green-500"
             : isDarkMode
-            ? "border-gray-600"
-            : "border-gray-300"
-        }`}
+              ? "border-gray-600"
+              : "border-gray-300"
+          }`}
       >
         {/* Header */}
         <div className="max-h-[300px] overflow-y-auto custom-scrollbar mb-4">
-          <h3 className={`text-xl font-bold ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+          <h3
+            className={`text-xl font-bold ${isDarkMode ? "text-white" : "text-gray-900"
+              }`}
+          >
             {q.header}
           </h3>
         </div>
@@ -115,9 +142,8 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
           )}
           {parsed.code && (
             <pre
-              className={`p-3 rounded mb-2 whitespace-pre-wrap ${
-                isDarkMode ? "text-gray-200" : "text-gray-700"
-              }`}
+              className={`p-3 rounded mb-2 whitespace-pre-wrap ${isDarkMode ? "text-gray-200" : "text-gray-700"
+                }`}
             >
               {parsed.code}
             </pre>
@@ -159,23 +185,22 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
           })}
         </div>
 
-        {/* Submit & Go to Topics */}
+        {/* Submit & Exit */}
         <div className="mt-6 flex items-center space-x-4">
           <button
             onClick={handleSubmit}
             disabled={q.answered_correctly === true}
-            className={`font-bold py-2 px-6 rounded-full transition-colors ${
-              q.answered_correctly
+            className={`font-bold py-2 px-6 rounded-full transition-colors ${q.answered_correctly
                 ? "bg-transparent border border-gray-300 text-gray-400 cursor-default"
                 : "bg-pink-500 hover:bg-pink-600 text-white"
-            }`}
+              }`}
           >
             Submit
           </button>
 
           {allCorrect && (
             <button
-              onClick={() =>  router.back()}
+              onClick={() => router.back()}
               className="font-bold py-2 px-6 rounded-full bg-green-500 hover:bg-green-600 text-white"
             >
               EXIT
