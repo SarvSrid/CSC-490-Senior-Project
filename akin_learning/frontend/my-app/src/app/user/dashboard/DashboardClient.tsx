@@ -155,7 +155,7 @@ export default function DashboardClient({userData, initialProgress}: DashboardCl
 
   // ProgressCard component – renders each progress card for a subject.
   // It now uses the merged property "recentTopics" which contains the top 3 recent topics.
-  const ProgressCard: React.FC<{ item: ProgressData }> = ({ item }) => {
+   const ProgressCard: React.FC<{ item: ProgressData }> = ({ item }) => {
     const recentTopics = item.recentTopics || [];
     return (
       <div
@@ -447,7 +447,7 @@ export default function DashboardClient({userData, initialProgress}: DashboardCl
       <svg width="0" height="0">
         <defs>
           <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="" />
+            <stop offset="0%" stopColor="#3B82F6" />
             <stop offset="50%" stopColor="#8B5CF6" />
             <stop offset="100%" stopColor="#EC4899" />
           </linearGradient>

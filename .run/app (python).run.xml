@@ -8,7 +8,7 @@
       <env name="PYTHONUNBUFFERED" value="1" />
     </envs>
     <option name="SDK_HOME" value="" />
-    <option name="SDK_NAME" value="Python 3.12 (CSC-490-Senior-Project)" />
+    <option name="SDK_NAME" value="Python 3.12 virtualenv at C:\Users\eman2\Documents\_Projects\AkinLearning\CSC-490-Senior-Project\venv" />
     <option name="WORKING_DIRECTORY" value="C:\Users\eman2\Documents\_Projects\AkinLearning\CSC-490-Senior-Project" />
     <option name="IS_MODULE_SDK" value="false" />
     <option name="ADD_CONTENT_ROOTS" value="true" />

@@ -117,7 +117,8 @@ def answer_question(question_id):
     data = request.get_json()
 
     user_id = data.get("user_id")
-
+    print(user_id)
+    
     try:
         conn = get_db_connection()
         cursor = conn.cursor(cursor_factory=RealDictCursor)

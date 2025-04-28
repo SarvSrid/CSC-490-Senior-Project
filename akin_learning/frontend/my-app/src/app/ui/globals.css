@@ -511,8 +511,8 @@ d1 {
 
 /* Place the nav menu right below the header */
 .nav-menu {
-  /* By default, it stacks under the header. 
-     We'll push the footer to the bottom by letting 
+  /* By default, it stacks under the header.
+     We'll push the footer to the bottom by letting
      the nav menu expand. */
   margin-bottom: auto;
 }

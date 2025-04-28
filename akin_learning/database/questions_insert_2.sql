@@ -741,7 +741,7 @@ VALUES
 -- This helps order all questions for the user
 -- Order questions based on id
 SELECT * FROM main_question
-WHERE topic_id = 14
+WHERE topic_id = 18
 ORDER BY id;
 
 

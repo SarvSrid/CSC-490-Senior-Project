@@ -631,7 +631,7 @@ VALUES
 -- This helps order all questions for the user
 -- Order questions based on id
 SELECT * FROM main_question
-WHERE topic_id = 1
+WHERE topic_id = 18
 ORDER BY id;
 
 UPDATE progress
@@ -644,7 +644,7 @@ WHERE topic_id = 1;
 
 -- Delete all questions to insert questions properly if issues arise
 -- Delete the question options first
-DELETE FROM question_option WHERE question_id = 16;
+-- DELETE FROM question_option WHERE question_id = 16;
 --
 -- Delete the question from the main_question table
-DELETE FROM main_question WHERE id = 16;
+-- DELETE FROM main_question WHERE id = 16;
